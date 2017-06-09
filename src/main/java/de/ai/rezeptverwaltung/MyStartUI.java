@@ -49,6 +49,8 @@ public class MyStartUI extends UI {
 			
         };
         
+        //test2
+        
         menu.addItem("Rezept Suchen", mycommand);
         menu.addItem("Rezept hinzufügen", mycommand);
         
