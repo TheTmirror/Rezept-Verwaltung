@@ -27,8 +27,6 @@ import de.ai.rezeptverwaltung.panelview.RezeptSuche;
 @Theme("mytheme")
 public class MyStartUI extends UI {
 	
-	//test
-	
     @Override
     protected void init(VaadinRequest vaadinRequest) {
         final VerticalLayout layout = new VerticalLayout();
@@ -50,8 +48,6 @@ public class MyStartUI extends UI {
 			}
 			
         };
-        
-        //test2
         
         menu.addItem("Rezept Suchen", mycommand);
         menu.addItem("Rezept hinzufügen", mycommand);
