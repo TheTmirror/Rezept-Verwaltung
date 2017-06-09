@@ -48,6 +48,7 @@ public class MyStartUI extends UI {
     	final VerticalLayout layout = new VerticalLayout();
         
         MenuBar menu = new MenuBar();
+//        menu.setWidth(30.0f, Unit.PERCENTAGE);
         
         Panel view = new Panel();
         
