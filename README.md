@@ -7,6 +7,9 @@ Template for a simple Vaadin application that only requires a Servlet 3.0 contai
 Workflow
 ========
 
+mvn install:install-file -Dfile={Path/to/your/ojdbc7.jar}
+      -DgroupId=com.oracle -DartifactId=ojdbc8 -Dversion=12.1.0 -Dpackaging=jar
+
 To compile the entire project, run "mvn install".
 
 To run the application, run "mvn jetty:run" and open http://localhost:8080/ .
