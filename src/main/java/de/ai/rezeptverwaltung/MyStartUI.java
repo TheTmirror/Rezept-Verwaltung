@@ -27,6 +27,8 @@ import de.ai.rezeptverwaltung.panelview.RezeptSuche;
 @Theme("mytheme")
 public class MyStartUI extends UI {
 	
+	//test
+	
     @Override
     protected void init(VaadinRequest vaadinRequest) {
         final VerticalLayout layout = new VerticalLayout();
