@@ -35,6 +35,7 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="I:/Users/Tristan/workspace/rezeptverwaltung/ojdbc8.jar"/>
+	<classpathentry kind="lib" path="I:/Users/Tristan/Git/Rezept-Verwaltung/ojdbc8.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
