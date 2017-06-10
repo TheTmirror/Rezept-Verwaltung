@@ -39,7 +39,7 @@ import de.ai.rezeptverwaltung.panelview.RezeptSuche;
 @Theme("mytheme")
 public class MyStartUI extends UI {
 	
-	Connection connection;
+	private Connection connection;
 	
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -58,7 +58,7 @@ public class MyStartUI extends UI {
 			public void menuSelected(MenuItem selectedItem) {
 				if(selectedItem.getText().equals("Rezept Suchen")){
 					System.out.println("True");
-					view.setContent(new RezeptSuche());
+					view.setContent(new RezeptSuche(connection));
 				}
 				else if(selectedItem.getText().equals("Rezept hinzufügen"))
 					view.setContent(null);
@@ -113,9 +113,10 @@ public class MyStartUI extends UI {
 			e.printStackTrace();
 		}
     	
-    	System.out.println("Bitte Passwort eingeben: ");
-    	Scanner sc = new Scanner(System.in);
-    	pass = sc.nextLine();
+//    	System.out.println("Bitte Passwort eingeben: ");
+//    	Scanner sc = new Scanner(System.in);
+//    	pass = sc.nextLine();
+    	pass = prop.getProperty("pass");
     	
     	try {
 			connection = DriverManager.getConnection(url, user, pass);
