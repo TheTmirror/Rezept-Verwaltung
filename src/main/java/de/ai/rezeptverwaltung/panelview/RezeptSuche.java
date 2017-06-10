@@ -7,6 +7,8 @@ import java.util.List;
 
 import com.vaadin.event.selection.SelectionEvent;
 import com.vaadin.event.selection.SelectionListener;
+import com.vaadin.shared.ui.MarginInfo;
+import com.vaadin.ui.Accordion;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -20,16 +22,23 @@ import com.vaadin.ui.ListSelect;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.components.grid.ItemClickListener;
 import com.vaadin.ui.components.grid.SingleSelectionModel;
 import com.vaadin.ui.renderers.ButtonRenderer;
 
+import de.ai.rezeptverwaltung.entities.Bild;
+import de.ai.rezeptverwaltung.entities.Freigabe;
 import de.ai.rezeptverwaltung.entities.Rezept;
 import de.ai.rezeptverwaltung.entities.Schlagwort;
+import de.ai.rezeptverwaltung.entities.Zubereitungsschritt;
 import de.ai.rezeptverwaltung.services.BildService;
+import de.ai.rezeptverwaltung.services.FreigabeService;
 import de.ai.rezeptverwaltung.services.RezeptService;
 import de.ai.rezeptverwaltung.services.SchlagwortService;
+import de.ai.rezeptverwaltung.services.ZubereitungsschrittService;
 
 public class RezeptSuche extends HorizontalLayout{
 	
@@ -88,10 +97,10 @@ public class RezeptSuche extends HorizontalLayout{
 			@Override
 			public void buttonClick(ClickEvent event) {
 				
-				if(tfName.isEmpty() && tfKategorie.isEmpty() && taSchlagworte.isEmpty() && taZutaten.isEmpty()) {
-					System.out.println("Bitte mindestens 1 eingeben");
-					return;
-				}
+//				if(tfName.isEmpty() && tfKategorie.isEmpty() && taSchlagworte.isEmpty() && taZutaten.isEmpty()) {
+//					System.out.println("Bitte mindestens 1 eingeben");
+//					return;
+//				}
 				
 				String name = tfName.getValue();
 				String kategorie = tfKategorie.getValue();
@@ -170,13 +179,19 @@ public class RezeptSuche extends HorizontalLayout{
 		
 		SchlagwortService ss = new SchlagwortService(connection);
 		BildService bs = new BildService(connection);
+		ZubereitungsschrittService zs = new ZubereitungsschrittService(connection);
 		
 		Panel details = new Panel();
 		
-		FormLayout layout = new FormLayout();
+		HorizontalLayout outerLayout = new HorizontalLayout();
 		
+		FormLayout layout = new FormLayout();
 		layout.addComponent(new Label(rezept.getBezeichnung()));
-//		layout.addComponent(new Label("Hier das Bild: " + rezept.getBild().getPfad()));
+		LinkedList<Bild> rezeptBild = bs.getAllByBildId(rezept.getBildId());
+		if(!rezeptBild.isEmpty()) {
+			rezept.setBild(bs.getAllByBildId(rezept.getBildId()).getFirst());
+			layout.addComponent(new Label("Hier das Bild: " + rezept.getBild().getPfad()));
+		}
 		layout.addComponent(new Label("Kategorie: " + rezept.getKategorie().getBezeichnung()));
 		rezept.setSchlagworte(ss.getAllById(rezept.getRezeptId()));
 		String temp = "";
@@ -184,16 +199,147 @@ public class RezeptSuche extends HorizontalLayout{
 			temp += s.getBezeichnung() + " ";
 		layout.addComponent(new Label("Schlagworte: " + temp));
 		layout.addComponent(new Label("Bewertung: " + rezept.getGesamtbewertung()));
+		if(rezept.getFreigabe() != null)
+			if(rezept.getFreigabe().getStatus() == 0)
+				layout.addComponent(new Label("Ablehngrund: " + rezept.getFreigabe().getBegründung()));
 		
 		Button freigeben = new Button("Freigeben");
 		Button entziehen = new Button("Freigabe entziehen");
 		
-		if(rezept.getFreigabe().getStatus() == 0)
-			entziehen.setEnabled(false);
-		else
-			freigeben.setEnabled(false);
+		freigeben.addClickListener(new ClickListener() {
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				if(rezept.getFreigabe() == null) {
+					
+					FreigabeService fs = new FreigabeService(connection);
+					
+					Freigabe f = new Freigabe();
+					f.setBegründung(null);
+					f.setRezeptId(rezept.getRezeptId());
+					f.setStatus(1);
+					
+					rezept.setFreigabe(f);
+					
+					fs.createFreigabe(rezept);
+				}
+				else {
+					FreigabeService fs = new FreigabeService(connection);
+					
+					Freigabe f = rezept.getFreigabe();
+					f.setBegründung(null);
+					f.setStatus(1);
+					
+					fs.updateFreigabe(rezept);
+				}
+			}
+			
+		});
 		
-		details.setContent(layout);
+		entziehen.addClickListener(new ClickListener() {
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				//Keine Freigabe existiert
+				if(rezept.getFreigabe() == null) {
+					Window w = new Window("Begründung");
+					UI.getCurrent().addWindow(w);
+					VerticalLayout vl = new VerticalLayout();
+					Label l = new Label("Bitte eine Begründung angeben!");
+					TextArea ta = new TextArea();
+					Button ok = new Button("OK");
+					ok.addClickListener(new ClickListener() {
+
+						@Override
+						public void buttonClick(ClickEvent event) {
+							FreigabeService fs = new FreigabeService(connection);
+							
+							Freigabe f = new Freigabe();
+							f.setRezeptId(rezept.getRezeptId());
+							f.setBegründung(ta.getValue());
+							f.setStatus(0);
+							
+							rezept.setFreigabe(f);
+							
+							fs.createFreigabe(rezept);
+							
+							w.close();
+						}
+						
+					});
+					vl.addComponent(l);
+					vl.addComponent(ta);
+					vl.addComponent(ok);
+					w.setContent(vl);
+					w.center();
+				}
+				else {
+					
+					Window w = new Window("Begründung");
+					UI.getCurrent().addWindow(w);
+					VerticalLayout vl = new VerticalLayout();
+					Label l = new Label("Bitte eine Begründung angeben!");
+					TextArea ta = new TextArea();
+					Button ok = new Button("OK");
+					ok.addClickListener(new ClickListener() {
+
+						@Override
+						public void buttonClick(ClickEvent event) {
+							FreigabeService fs = new FreigabeService(connection);
+							
+							Freigabe f = rezept.getFreigabe();
+							f.setBegründung(ta.getValue());
+							f.setStatus(0);
+							
+							fs.updateFreigabe(rezept);
+							
+							w.close();
+						}
+						
+					});
+					vl.addComponent(l);
+					vl.addComponent(ta);
+					vl.addComponent(ok);
+					w.setContent(vl);
+					w.center();
+					
+				}
+			}
+			
+		});
+		
+		if(rezept.getFreigabe() != null)
+			if(rezept.getFreigabe().getStatus() == 0)
+				entziehen.setEnabled(false);
+			else if(rezept.getFreigabe().getStatus() == 1)
+				freigeben.setEnabled(false);
+		
+		HorizontalLayout buttons = new HorizontalLayout();
+		buttons.addComponent(freigeben);
+		buttons.addComponent(entziehen);
+		layout.addComponent(buttons);
+		
+		//Zubereitungsschritte
+		FormLayout af = new FormLayout();
+		af.setMargin(true);
+		Accordion schritte = new Accordion();
+		af.addComponent(schritte);
+		
+		rezept.setZubereitungsschritte(zs.getAllById(rezept.getRezeptId()));
+		
+		if(rezept.getZubereitungsschritte().isEmpty())
+			schritte.addTab(new VerticalLayout(new Label("Es sind keine Schritte vorhanden")));
+		
+		int i = 1;
+		for(Zubereitungsschritt z : rezept.getZubereitungsschritte()) {
+			schritte.addTab(new VerticalLayout(new Label(z.getBeschreibung())), "Schritt " + i);
+			i++;
+		}
+		
+		outerLayout.addComponent(layout);
+		outerLayout.addComponent(af);
+		
+		details.setContent(outerLayout);
 		
 		return details;
 		

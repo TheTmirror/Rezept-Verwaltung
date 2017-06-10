@@ -57,7 +57,6 @@ public class MyStartUI extends UI {
 			@Override
 			public void menuSelected(MenuItem selectedItem) {
 				if(selectedItem.getText().equals("Rezept Suchen")){
-					System.out.println("True");
 					view.setContent(new RezeptSuche(connection));
 				}
 				else if(selectedItem.getText().equals("Rezept hinzufügen"))
@@ -80,7 +79,23 @@ public class MyStartUI extends UI {
         	
         });
         
+        Button rollback = new Button("Rollback");
+        rollback.addClickListener(new ClickListener() {
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				try {
+					connection.rollback();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+        	
+        });
+        
         layout.addComponent(end);
+        layout.addComponent(rollback);
         layout.addComponent(menu);
         layout.addComponent(view);
         
@@ -120,6 +135,7 @@ public class MyStartUI extends UI {
     	
     	try {
 			connection = DriverManager.getConnection(url, user, pass);
+			connection.setAutoCommit(false);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

@@ -44,12 +44,17 @@ public class ZubereitungsschrittService {
 			r = searchQuery.executeQuery();
 			
 			Zubereitungsschritt schritt;
+			WerkzeugService ws = new WerkzeugService(connection);
+			BildService bs = new BildService(connection);
 			
 			while(r.next()) {
 				
 				schritt = new Zubereitungsschritt();
 				schritt.setSchrittId(Integer.parseInt(r.getString("SCHRITT_ID")));
 				schritt.setBeschreibung(r.getString("BESCHREIBUNG"));
+				schritt.setWerkzeuge(ws.getAllById(schritt.getSchrittId()));
+				schritt.setBilder(bs.getAllBySchrittId(schritt.getSchrittId()));
+				
 				ergebnisse.add(schritt);
 				
 			}

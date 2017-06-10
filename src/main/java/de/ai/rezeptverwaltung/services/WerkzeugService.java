@@ -29,7 +29,7 @@ public class WerkzeugService {
 			
 			//START
 			
-			String queryString = "SELECT Werkzeug_ID, Bezeichnung " +
+			String queryString = "SELECT werkzeug.Werkzeug_ID, Bezeichnung " +
 								"FROM Werkzeug " +
 								"JOIN Zubereitungsschritt_Werkzeug ON(Zubereitungsschritt_Werkzeug.werkzeug_id = werkzeug.werkzeug_id) " +
 								"WHERE Zubereitungsschritt_Werkzeug.zubereitungsschritt_id = ?";
