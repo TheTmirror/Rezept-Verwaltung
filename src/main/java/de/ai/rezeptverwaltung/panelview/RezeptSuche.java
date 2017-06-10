@@ -19,7 +19,9 @@ import com.vaadin.ui.Grid.SelectionMode;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.ListSelect;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.Panel;
+import com.vaadin.ui.Slider;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
@@ -29,13 +31,17 @@ import com.vaadin.ui.components.grid.ItemClickListener;
 import com.vaadin.ui.components.grid.SingleSelectionModel;
 import com.vaadin.ui.renderers.ButtonRenderer;
 
+import de.ai.rezeptverwaltung.entities.Bewertung;
 import de.ai.rezeptverwaltung.entities.Bild;
 import de.ai.rezeptverwaltung.entities.Freigabe;
+import de.ai.rezeptverwaltung.entities.Kommentar;
 import de.ai.rezeptverwaltung.entities.Rezept;
 import de.ai.rezeptverwaltung.entities.Schlagwort;
 import de.ai.rezeptverwaltung.entities.Zubereitungsschritt;
+import de.ai.rezeptverwaltung.services.BewertungService;
 import de.ai.rezeptverwaltung.services.BildService;
 import de.ai.rezeptverwaltung.services.FreigabeService;
+import de.ai.rezeptverwaltung.services.KommentarService;
 import de.ai.rezeptverwaltung.services.RezeptService;
 import de.ai.rezeptverwaltung.services.SchlagwortService;
 import de.ai.rezeptverwaltung.services.ZubereitungsschrittService;
@@ -161,11 +167,43 @@ public class RezeptSuche extends HorizontalLayout{
 			
 		});
 		
+		//ACHTUNG: Alle Rezepte auf Speisekarte -> Freigabe Button Disablen
+		Button speisekarteSuche = new Button("Alle Rezepte auf Speisekarte");
+		speisekarteSuche.addClickListener(new ClickListener() {
+			
+			@Override
+			public void buttonClick(ClickEvent event) {
+				ergebnisse = rs.getSpeisekarte();
+				ergebnisListe.setItems(ergebnisse);
+				
+				l.removeAllComponents();
+				l.addComponent(ergebnisListe);
+			}
+			
+		});
+		
+		//Alle freigegebenen Rezepte
+		Button freigegebeneSuche = new Button("Alle freigegebenen Rezepte");
+		freigegebeneSuche.addClickListener(new ClickListener() {
+			
+			@Override
+			public void buttonClick(ClickEvent event) {
+				ergebnisse = rs.getFreigegebene();
+				ergebnisListe.setItems(ergebnisse);
+				
+				l.removeAllComponents();
+				l.addComponent(ergebnisListe);
+			}
+			
+		});
+		
 		fl.addComponent(tfName);
 		fl.addComponent(tfKategorie);
 		fl.addComponent(taSchlagworte);
 		fl.addComponent(taZutaten);
 		fl.addComponent(suchen);
+		fl.addComponent(speisekarteSuche);
+		fl.addComponent(freigegebeneSuche);
 		
 		l.addComponent(ergebnisListe);
 		
@@ -318,6 +356,97 @@ public class RezeptSuche extends HorizontalLayout{
 		buttons.addComponent(freigeben);
 		buttons.addComponent(entziehen);
 		layout.addComponent(buttons);
+		
+		//Kommentare
+		Panel kommentare = new Panel();
+		VerticalLayout kommentarLayout = new VerticalLayout();
+		kommentarLayout.setHeight(150.0f, Unit.PIXELS);
+		
+		KommentarService ks = new KommentarService(connection);
+		
+		rezept.setKommentare(ks.getAllById(rezept.getRezeptId()));
+		
+		// TODO Kommentarpanel schön machen!
+		for(Kommentar k : rezept.getKommentare()) {
+			kommentarLayout.addComponent(new Label(k.getKommentartext()));
+		}
+		
+		kommentare.setContent(kommentarLayout);
+		
+		layout.addComponent(kommentare);
+		
+		//Neue Kommentare
+		Button neuesKommentar = new Button("Kommentar hinzufügen!");
+		neuesKommentar.addClickListener(new ClickListener(){
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				Window w = new Window("Neues Kommentar");
+				UI.getCurrent().addWindow(w);
+				w.center();
+				VerticalLayout vl = new VerticalLayout();
+				w.setContent(vl);
+				
+				Label l = new Label("Bitte Kommentar eingeben!");
+				TextArea ta = new TextArea();
+				Button ok = new Button("Kommentar speichern");
+				
+				ok.addClickListener(new ClickListener() {
+
+					@Override
+					public void buttonClick(ClickEvent event) {
+						KommentarService ks = new KommentarService(connection);
+						
+						Kommentar k = new Kommentar();
+						k.setRezeptId(rezept.getRezeptId());
+						k.setKommentartext(ta.getValue());
+						k.setAutor("MusterAutor");
+						
+						ks.save(k);
+						
+						//Damit man mit dem selben Objekt weiter arbeiten kann
+						rezept.getKommentare().add(k);
+						
+						w.close();
+					}
+					
+				});
+				
+				vl.addComponent(l);
+				vl.addComponent(ta);
+				vl.addComponent(ok);
+			}
+			
+		});
+		
+		layout.addComponent(neuesKommentar);
+		
+		//Bewertung
+		Slider s = new Slider("Bewertung");
+		s.setMin(0.0);
+		s.setMax(5.0);
+		s.setValue(3.0);
+		
+		Button sliderOk = new Button("Bewertung hinterlasen!");
+		
+		sliderOk.addClickListener(new ClickListener() {
+			
+			@Override
+			public void buttonClick(ClickEvent event) {
+				
+				Bewertung b = new Bewertung();
+				b.setRezeptId(rezept.getRezeptId());
+				b.setPunkte(s.getValue().intValue());
+				
+				BewertungService bs = new BewertungService(connection);
+				bs.save(b);
+				
+			}
+			
+		});
+		
+		layout.addComponent(s);
+		layout.addComponent(sliderOk);
 		
 		//Zubereitungsschritte
 		FormLayout af = new FormLayout();

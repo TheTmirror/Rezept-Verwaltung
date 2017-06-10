@@ -21,6 +21,172 @@ public class RezeptService {
 		
 	}
 	
+	public LinkedList<Rezept> getFreigegebene() {
+		
+		LinkedList<Rezept> ergebnisse = new LinkedList<Rezept>();
+		
+		PreparedStatement searchQuery = null;
+		PreparedStatement searchSubQuery = null;
+		ResultSet r = null;
+		ResultSet rSub = null;
+		
+		String queryString = "SELECT rezept.rezept_id FROM rezept JOIN freigabe ON(freigabe.rezept_id = rezept.rezept_id) WHERE status = 1";
+		
+		try {
+			searchQuery = connection.prepareStatement(queryString);
+			r = searchQuery.executeQuery();
+			
+			queryString = "SELECT rezept.REZEPT_ID, rezept.BILD_ID, rezept.BEZEICHNUNG AS rezeptBezeichnung, GESAMTBEWERTUNG, BEGRUENDUNG, FREIGABE_ID, STATUS, rezept.KATEGORIE_ID, kategorie.bezeichnung AS kategorieName "+
+						  "FROM rezept "+
+						  "LEFT OUTER JOIN freigabe ON(rezept.rezept_id = freigabe.rezept_id) "+
+						  "JOIN kategorie ON(kategorie.kategorie_id=rezept.kategorie_id) "+
+						  "WHERE  rezept.REZEPT_ID = ANY(";
+			LinkedList<Integer> values = new LinkedList<Integer>();
+			while(r.next()) {
+				values.add(Integer.parseInt(r.getString("REZEPT_ID")));
+				queryString += "?,";
+			}
+			if(values.isEmpty())
+				return ergebnisse;
+			queryString = queryString.substring(0, queryString.length()-1);
+			queryString += ")";
+			
+			searchSubQuery = connection.prepareStatement(queryString);
+			for(int i=0; i<values.size(); i++)
+			{
+				searchSubQuery.setInt(i+1, values.get(i));
+			}
+			rSub = searchSubQuery.executeQuery();
+			
+			Rezept rezept;
+			
+			while(rSub.next()) {
+				
+				rezept = new Rezept();
+				if(rSub.getString("BILD_ID") != null)
+					rezept.setBildId(Integer.parseInt(rSub.getString("BILD_ID")));
+				rezept.setBezeichnung(rSub.getString("REZEPTBEZEICHNUNG"));
+				rezept.setGesamtbewertung(Double.parseDouble(rSub.getString("GESAMTBEWERTUNG")));
+				rezept.setKategorieId(Integer.parseInt(rSub.getString("KATEGORIE_ID")));
+				Kategorie k = new Kategorie();
+				k.setKategorieId(Integer.parseInt(rSub.getString("KATEGORIE_ID")));
+				k.setBezeichnung(rSub.getString("KATEGORIENAME"));
+				rezept.setKategorie(k);
+				if(rSub.getString("FREIGABE_ID") != null) {
+					Freigabe f = new Freigabe();
+					f.setFreigabeId(Integer.parseInt(rSub.getString("FREIGABE_ID")));
+					f.setRezeptId(Integer.parseInt(rSub.getString("REZEPT_ID")));
+					f.setStatus(Integer.parseInt(rSub.getString("STATUS")));
+					f.setBegründung(rSub.getString("BEGRUENDUNG"));
+					rezept.setFreigabe(f);
+				}
+				rezept.setRezeptId(Integer.parseInt(rSub.getString("REZEPT_ID")));
+				
+				ergebnisse.add(rezept);
+				
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			
+			try {
+				searchQuery.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+		
+		return ergebnisse;
+		
+	}
+	
+	public LinkedList<Rezept> getSpeisekarte() {
+		
+		LinkedList<Rezept> ergebnisse = new LinkedList<Rezept>();
+		
+		PreparedStatement searchQuery = null;
+		PreparedStatement searchSubQuery = null;
+		ResultSet r = null;
+		ResultSet rSub = null;
+		
+		String queryString = "SELECT rezept_id FROM speisekarten_ansicht";
+		
+		try {
+			searchQuery = connection.prepareStatement(queryString);
+			r = searchQuery.executeQuery();
+			
+			queryString = "SELECT rezept.REZEPT_ID, rezept.BILD_ID, rezept.BEZEICHNUNG AS rezeptBezeichnung, GESAMTBEWERTUNG, BEGRUENDUNG, FREIGABE_ID, STATUS, rezept.KATEGORIE_ID, kategorie.bezeichnung AS kategorieName "+
+						  "FROM rezept "+
+						  "LEFT OUTER JOIN freigabe ON(rezept.rezept_id = freigabe.rezept_id) "+
+						  "JOIN kategorie ON(kategorie.kategorie_id=rezept.kategorie_id) "+
+						  "WHERE  rezept.REZEPT_ID = ANY(";
+			LinkedList<Integer> values = new LinkedList<Integer>();
+			while(r.next()) {
+				values.add(Integer.parseInt(r.getString("REZEPT_ID")));
+				queryString += "?,";
+			}
+			if(values.isEmpty())
+				return ergebnisse;
+			queryString = queryString.substring(0, queryString.length()-1);
+			queryString += ")";
+			
+			searchSubQuery = connection.prepareStatement(queryString);
+			for(int i=0; i<values.size(); i++)
+			{
+				searchSubQuery.setInt(i+1, values.get(i));
+			}
+			rSub = searchSubQuery.executeQuery();
+			
+			Rezept rezept;
+			
+			while(rSub.next()) {
+				
+				rezept = new Rezept();
+				if(rSub.getString("BILD_ID") != null)
+					rezept.setBildId(Integer.parseInt(rSub.getString("BILD_ID")));
+				rezept.setBezeichnung(rSub.getString("REZEPTBEZEICHNUNG"));
+				rezept.setGesamtbewertung(Double.parseDouble(rSub.getString("GESAMTBEWERTUNG")));
+				rezept.setKategorieId(Integer.parseInt(rSub.getString("KATEGORIE_ID")));
+				Kategorie k = new Kategorie();
+				k.setKategorieId(Integer.parseInt(rSub.getString("KATEGORIE_ID")));
+				k.setBezeichnung(rSub.getString("KATEGORIENAME"));
+				rezept.setKategorie(k);
+				if(rSub.getString("FREIGABE_ID") != null) {
+					Freigabe f = new Freigabe();
+					f.setFreigabeId(Integer.parseInt(rSub.getString("FREIGABE_ID")));
+					f.setRezeptId(Integer.parseInt(rSub.getString("REZEPT_ID")));
+					f.setStatus(Integer.parseInt(rSub.getString("STATUS")));
+					f.setBegründung(rSub.getString("BEGRUENDUNG"));
+					rezept.setFreigabe(f);
+				}
+				rezept.setRezeptId(Integer.parseInt(rSub.getString("REZEPT_ID")));
+				
+				ergebnisse.add(rezept);
+				
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			
+			try {
+				searchQuery.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+		
+		return ergebnisse;
+		
+	}
+	
 	public LinkedList<Rezept> searchFor(String name, String kategorie, LinkedList<String> schlagworte, LinkedList<String> zutaten) {
 		
 		LinkedList<Rezept> ergebnisse = new LinkedList<Rezept>();
