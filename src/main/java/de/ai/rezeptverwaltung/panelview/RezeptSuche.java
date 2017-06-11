@@ -44,6 +44,7 @@ import de.ai.rezeptverwaltung.services.FreigabeService;
 import de.ai.rezeptverwaltung.services.KommentarService;
 import de.ai.rezeptverwaltung.services.RezeptService;
 import de.ai.rezeptverwaltung.services.SchlagwortService;
+import de.ai.rezeptverwaltung.services.SpeisekarteViewService;
 import de.ai.rezeptverwaltung.services.ZubereitungsschrittService;
 
 public class RezeptSuche extends HorizontalLayout{
@@ -133,6 +134,9 @@ public class RezeptSuche extends HorizontalLayout{
 					input = rest;
 				}
 				
+				while(schlagworte.contains(""))
+					schlagworte.remove("");
+				
 				LinkedList<String> zutaten = new LinkedList<String>();
 				
 				input = taZutaten.getValue();
@@ -155,6 +159,9 @@ public class RezeptSuche extends HorizontalLayout{
 					zutaten.add(word);
 					input = rest;
 				}
+				
+				while(zutaten.contains(""))
+					zutaten.remove("");
 				
 				ergebnisse = rs.searchFor(name, kategorie, schlagworte, zutaten);
 //				ergebnisse = rs.getAll();
@@ -243,6 +250,17 @@ public class RezeptSuche extends HorizontalLayout{
 		
 		Button freigeben = new Button("Freigeben");
 		Button entziehen = new Button("Freigabe entziehen");
+		
+		if(rezept.getRezeptId() == 0) {
+			
+			Rezept r2 = rs.getByBezeichnung(rezept.getBezeichnung());
+			rezept.setRezeptId(r2.getRezeptId());
+			
+		}
+		
+		SpeisekarteViewService svs = new SpeisekarteViewService(connection);
+		if(svs.isAufSpeisekarte(rezept))
+			entziehen.setEnabled(false);
 		
 		freigeben.addClickListener(new ClickListener() {
 

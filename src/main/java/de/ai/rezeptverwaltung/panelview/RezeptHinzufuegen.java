@@ -93,6 +93,11 @@ public class RezeptHinzufuegen extends VerticalLayout {
 			
 			@Override
 			public void buttonClick(ClickEvent event) {
+				if(name.isEmpty() || tfKategorie.isEmpty()) {
+					Notification.show("Rezept nicht hinzugefügt!", Type.TRAY_NOTIFICATION);
+					return;
+				}
+				
 				Rezept rezept = new Rezept();
 				Kategorie kategorie = new Kategorie();
 				Bild bild = new Bild();
@@ -153,6 +158,9 @@ public class RezeptHinzufuegen extends VerticalLayout {
 					worte.add(word);
 					input = rest;
 				}
+				
+				while(worte.contains(""))
+					worte.remove("");
 				
 				for(String wort : worte) {
 					Schlagwort s = new Schlagwort();
@@ -275,7 +283,7 @@ public class RezeptHinzufuegen extends VerticalLayout {
 				
 				//Zubereitungsschritt - Bild füllen
 				
-				
+				Notification.show("Rezept vollständig hinzugefügt!", Type.TRAY_NOTIFICATION);
 				
 			}
 			
@@ -284,6 +292,7 @@ public class RezeptHinzufuegen extends VerticalLayout {
 		Button zutat = new Button("Zutat hinzufügen");
 		VerticalLayout layout5 = new VerticalLayout();
 		Button werkzeug = new Button("Werkzeug hinzufügen");
+		werkzeug.setEnabled(false);
 
 		addComponent(sample);
 		addComponent(layout);
@@ -298,8 +307,6 @@ public class RezeptHinzufuegen extends VerticalLayout {
 		
 		//buttons visualisieren
 		layout.addComponentAsFirst(new HorizontalLayout(zutat, zubereitung, werkzeug, hinzufuegen));
-		hinzufuegen.addClickListener(e -> Notification.show("Rezept hinzugefügt",
-				Type.TRAY_NOTIFICATION));
 		
 		//bei jedem click wird ein feld für zutat und/oder zubereitung erstellt
 		zutatenFelder = new LinkedList<LinkedList<TextField>>();
@@ -338,6 +345,7 @@ public class RezeptHinzufuegen extends VerticalLayout {
 			
 			@Override
 			public void buttonClick(ClickEvent event) {
+				werkzeug.setEnabled(true);
 				HorizontalLayout hl = new HorizontalLayout();
 				VerticalLayout vl = new VerticalLayout();
 				vl.setMargin(new MarginInfo(false, true, false, true));

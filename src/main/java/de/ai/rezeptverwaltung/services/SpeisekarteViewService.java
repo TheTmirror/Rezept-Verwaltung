@@ -1,5 +1,6 @@
 package de.ai.rezeptverwaltung.services;
 
+import java.awt.image.Raster;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -15,6 +16,35 @@ public class SpeisekarteViewService {
 	public SpeisekarteViewService(Connection connection) {
 		
 		this.connection = connection;
+		
+	}
+	
+	public boolean isAufSpeisekarte(Rezept r) {
+		
+		PreparedStatement statement = null;
+		
+		String query = "SELECT rezept_id FROM speisekarten_ansicht WHERE rezept_id = ?";
+		
+		try {
+			statement = connection.prepareStatement(query);
+			statement.setInt(1, r.getRezeptId());
+			
+			while(statement.executeQuery().next())
+				return true;
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				statement.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		return false;
 		
 	}
 	
