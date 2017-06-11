@@ -1,5 +1,7 @@
 package de.ai.rezeptverwaltung.panelview;
 
+import java.sql.Connection;
+
 import com.vaadin.ui.Button;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -12,7 +14,11 @@ import com.vaadin.ui.VerticalLayout;
 
 public class RezeptHinzufuegen extends VerticalLayout {
 	
-	public RezeptHinzufuegen(){
+	Connection connection;
+	
+	public RezeptHinzufuegen(Connection connection){
+		this.connection = connection;
+		
 		init();
 	}
 
@@ -20,7 +26,13 @@ public class RezeptHinzufuegen extends VerticalLayout {
 		
 		//oberlfäche
 		Label sample = new Label("Rezept hinzufuegen");
-		VerticalLayout layout1 = new VerticalLayout();
+		VerticalLayout layout = new VerticalLayout();
+		HorizontalLayout layout1 = new HorizontalLayout();
+		VerticalLayout layout2 = new VerticalLayout();
+		VerticalLayout layout3 = new VerticalLayout();
+		VerticalLayout layout4 = new VerticalLayout();
+		
+		
 		
 		//textfelder für name, username, kategorie und schlagwort erstellen
 		TextField name = new TextField("Name des Rezepts: ");
@@ -38,23 +50,25 @@ public class RezeptHinzufuegen extends VerticalLayout {
 		Button zutat = new Button("Zutat hinzufügen ");
 
 		addComponent(sample);
-		addComponent(layout1);
+		addComponent(layout);
+		layout.addComponent(layout1);
+		layout1.addComponent(layout2);
+		layout1.addComponent(layout3);
+		layout1.addComponent(layout4);
 		
 		//text felder visualisieren
-		layout1.addComponentAsFirst(new VerticalLayout(name, username, kategorie, schlagwort));
+		layout2.addComponentAsFirst(new VerticalLayout(name, username, kategorie, schlagwort));
 		
 		//buttons visualisieren
-		layout1.addComponentAsFirst(new HorizontalLayout(zutat, zubereitung, hinzufuegen));
-//		layout1.addComponentAsFirst(zubereitung);
-//		layout1.addComponentAsFirst(hinzufuegen);
+		layout.addComponentAsFirst(new HorizontalLayout(zutat, zubereitung, hinzufuegen));
 		hinzufuegen.addClickListener(e -> Notification.show("Rezept hinzugefügt",
 				Type.TRAY_NOTIFICATION));
 		
 		//bei jedem click wird ein feld für zutat und/oder zubereitung erstellt
-		zutat.addClickListener(t -> layout1.addComponents(
+		zutat.addClickListener(t -> layout3.addComponents(
 				new HorizontalLayout(new TextField("Zutat:"), new TextField("Menge:"))));
 		
-		zubereitung.addClickListener(a -> layout1.addComponent(new TextArea("Zubereitungsschritt:"))); 
+		zubereitung.addClickListener(a -> layout4.addComponent(new TextArea("Zubereitungsschritt:"))); 
 			
 
 
