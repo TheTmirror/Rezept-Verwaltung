@@ -1,8 +1,11 @@
 package de.ai.rezeptverwaltung.panelview;
 
 import java.sql.Connection;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
+import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -19,6 +22,7 @@ import de.ai.rezeptverwaltung.entities.Kategorie;
 import de.ai.rezeptverwaltung.entities.Mengeneinheiten;
 import de.ai.rezeptverwaltung.entities.Rezept;
 import de.ai.rezeptverwaltung.entities.Schlagwort;
+import de.ai.rezeptverwaltung.entities.Werkzeug;
 import de.ai.rezeptverwaltung.entities.Zubereitungsschritt;
 import de.ai.rezeptverwaltung.entities.Zutat;
 import de.ai.rezeptverwaltung.entities.Zutat_Rezept;
@@ -28,8 +32,10 @@ import de.ai.rezeptverwaltung.services.MengeneinheitenService;
 import de.ai.rezeptverwaltung.services.RezeptService;
 import de.ai.rezeptverwaltung.services.SchlagwortService;
 import de.ai.rezeptverwaltung.services.Schlagwort_Rezept_Service;
+import de.ai.rezeptverwaltung.services.WerkzeugService;
 import de.ai.rezeptverwaltung.services.ZubereitungsschrittService;
 import de.ai.rezeptverwaltung.services.Zubereitungsschritt_RezeptService;
+import de.ai.rezeptverwaltung.services.Zubereitungsschritt_WerkzeugService;
 import de.ai.rezeptverwaltung.services.ZutatService;
 import de.ai.rezeptverwaltung.services.Zutat_RezeptService;
 
@@ -43,6 +49,7 @@ public class RezeptHinzufuegen extends VerticalLayout {
 	//Hilfskomponenten
 	LinkedList<LinkedList<TextField>> zutatenFelder;
 	LinkedList<TextArea> zuFelder;
+	LinkedList<TextField> wFelder;
 	
 	public RezeptHinzufuegen(Connection connection){
 		this.connection = connection;
@@ -236,6 +243,37 @@ public class RezeptHinzufuegen extends VerticalLayout {
 					zurs.addOrUpdate(rezept, schritt1, nummer);
 				}
 				
+				/*
+				 * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+				 * 
+				 * Werkeuge werden ersteinmal allgemein eingelesen
+				 * die Zurodnung zu den einzelnen Rezeptschritten
+				 * fehlt noch!
+				 * 
+				 * Die Zuordnung der einzelnen Bilder zu Zubereitungs-
+				 * schritt fehlt auch noch
+				 * 
+				 * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+				 */
+				//Werkzeuge
+				LinkedList<Werkzeug> werkzeuge = new LinkedList<Werkzeug>();
+				
+				Werkzeug werkzeug;
+				WerkzeugService ws = new WerkzeugService(connection);
+				LinkedList<Werkzeug> newWerkzeuge = new LinkedList<Werkzeug>();
+				
+				for(TextField tf : wFelder) {
+					
+					werkzeug = new Werkzeug();
+					werkzeug.setBezeichnung(tf.getValue());
+					ws.addOrUpdate(werkzeug);
+					newWerkzeuge.addLast(ws.getByBezeichnung(werkzeug.getBezeichnung()));
+					
+				}
+				
+				//Zubereitungsschritt - Werkzeug füllen
+				
+				//Zubereitungsschritt - Bild füllen
 				
 				
 				
@@ -243,7 +281,9 @@ public class RezeptHinzufuegen extends VerticalLayout {
 			
 		});
 		Button zubereitung = new Button("Zubereitungsschritt erstellen");
-		Button zutat = new Button("Zutat hinzufügen ");
+		Button zutat = new Button("Zutat hinzufügen");
+		VerticalLayout layout5 = new VerticalLayout();
+		Button werkzeug = new Button("Werkzeug hinzufügen");
 
 		addComponent(sample);
 		addComponent(layout);
@@ -251,12 +291,13 @@ public class RezeptHinzufuegen extends VerticalLayout {
 		layout1.addComponent(layout2);
 		layout1.addComponent(layout3);
 		layout1.addComponent(layout4);
+		layout1.addComponent(layout5);
 		
 		//text felder visualisieren
 		layout2.addComponentAsFirst(new VerticalLayout(name, username, tfKategorie, taSchlagwort));
 		
 		//buttons visualisieren
-		layout.addComponentAsFirst(new HorizontalLayout(zutat, zubereitung, hinzufuegen));
+		layout.addComponentAsFirst(new HorizontalLayout(zutat, zubereitung, werkzeug, hinzufuegen));
 		hinzufuegen.addClickListener(e -> Notification.show("Rezept hinzugefügt",
 				Type.TRAY_NOTIFICATION));
 		
@@ -290,21 +331,39 @@ public class RezeptHinzufuegen extends VerticalLayout {
 			}
 		});
 		
-//		zutat.addClickListener(t -> layout3.addComponents(
-//				new HorizontalLayout(new TextField("Zutat:"), new TextField("Menge:"))));
-		
-//		zubereitung.addClickListener(a -> layout4.addComponent(new TextArea("Zubereitungsschritt:"))); 
-		
 		zuFelder = new LinkedList<TextArea>();
+		LinkedList<HorizontalLayout> layoutList = new LinkedList<HorizontalLayout>();
 		
 		zubereitung.addClickListener(new ClickListener() {
 			
 			@Override
 			public void buttonClick(ClickEvent event) {
-				
+				HorizontalLayout hl = new HorizontalLayout();
+				VerticalLayout vl = new VerticalLayout();
+				vl.setMargin(new MarginInfo(false, true, false, true));
 				TextArea taZubereitungsschritt = new TextArea("Zubereitungsschritt: ");
-				layout4.addComponent(taZubereitungsschritt);
+				hl.addComponent(taZubereitungsschritt);
+				hl.addComponent(vl);
+				layout4.addComponent(hl);
 				zuFelder.addLast(taZubereitungsschritt);
+				layoutList.addLast(hl);
+				
+			}
+			
+		});
+		
+//		Map<Integer, TextField> wFelder = new HashMap<Integer, TextField>();
+		wFelder = new LinkedList<TextField>();
+		
+		werkzeug.addClickListener(new ClickListener() {
+			
+			@Override
+			public void buttonClick(ClickEvent event) {
+				HorizontalLayout hl = layoutList.getLast();
+				VerticalLayout vl = (VerticalLayout) hl.getComponent(1);
+				TextField tfWerkzeug = new TextField("Werkzeug: ");
+				vl.addComponent(tfWerkzeug);
+				wFelder.addLast(tfWerkzeug);
 				
 			}
 			

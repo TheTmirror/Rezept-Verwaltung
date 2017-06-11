@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 
 import de.ai.rezeptverwaltung.entities.Werkzeug;
+import de.ai.rezeptverwaltung.entities.Zutat;
 
 public class WerkzeugService {
 
@@ -16,6 +17,78 @@ public class WerkzeugService {
 		
 		this.connection = connection;
 		
+	}
+	
+	public Werkzeug getByBezeichnung(String b) {
+		
+		PreparedStatement s = null;
+		Werkzeug ergebniss = null;
+		
+		String query = "SELECT * FROM werkzeug WHERE bezeichnung = ?";
+		
+		try {
+			s = connection.prepareStatement(query);
+			s.setString(1, b);
+			ResultSet r = s.executeQuery();
+			
+			r.next();
+			ergebniss = new Werkzeug();
+			ergebniss.setWerkzeugId(Integer.parseInt(r.getString("werkzeug_id")));
+			ergebniss.setBezeichnung(r.getString("bezeichnung"));
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				s.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		return ergebniss;
+		
+	}
+	
+	public void addOrUpdate(Werkzeug w) {
+		
+		PreparedStatement s = null;
+		
+		String query = "SELECT werkzeug_id FROM werkzeug WHERE bezeichnung = ?";
+		
+		try {
+			s = connection.prepareStatement(query);
+			s.setString(1, w.getBezeichnung());
+			ResultSet r = s.executeQuery();
+			
+			int value = -1;
+			while(r.next())
+				value = Integer.parseInt(r.getString("werkzeug_id"));
+			
+			if(value != -1) {
+				w.setWerkzeugId(value);
+			}
+			else {
+				query = "INSERT INTO werkzeug VALUES (werkzeug_sequenz.nextval, ?)";
+				s.close();
+				s = connection.prepareStatement(query);
+				s.setString(1, w.getBezeichnung());
+				s.executeUpdate();
+				connection.commit();
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				s.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	public LinkedList<Werkzeug> getAllById(int id) {
