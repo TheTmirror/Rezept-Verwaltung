@@ -59,21 +59,18 @@ public class MyStartUI extends UI {
 			@Override
 			public void menuSelected(MenuItem selectedItem) {
 				if(selectedItem.getText().equals("Rezept Suchen")){
-					System.out.println("True");
-//					view.setContent(new RezeptSuche(connection));
+					view.setContent(new RezeptSuche(connection));
 				}
-				else if(selectedItem.getText().equals("Rezept Hinzufuegen")){
-					view.setContent(new RezeptHinzufuegen());
-				}
-				else if(selectedItem.getText().equals("Speisekarte Pflegen")){
-					view.setContent(new SpeisekartePflegen());
-				}
+				else if(selectedItem.getText().equals("Rezept hinzufügen"))
+					view.setContent(new RezeptHinzufuegen(connection));
+				else if(selectedItem.getText().equals("Speisekarte Pflegen"))
+					view.setContent(new SpeisekartePflegen(connection));
 			}
 			
         };
         
         menu.addItem("Rezept Suchen", mycommand);
-        menu.addItem("Rezept Hinzufuegen", mycommand);
+        menu.addItem("Rezept hinzufügen", mycommand);
         menu.addItem("Speisekarte Pflegen", mycommand);
         
         Button end = new Button("Alles beenden!");
@@ -87,7 +84,23 @@ public class MyStartUI extends UI {
         	
         });
         
+        Button rollback = new Button("Rollback");
+        rollback.addClickListener(new ClickListener() {
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				try {
+					connection.rollback();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+        	
+        });
+        
         layout.addComponent(end);
+        layout.addComponent(rollback);
         layout.addComponent(menu);
         layout.addComponent(view);
         
@@ -127,6 +140,7 @@ public class MyStartUI extends UI {
     	
     	try {
 			connection = DriverManager.getConnection(url, user, pass);
+			connection.setAutoCommit(false);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
