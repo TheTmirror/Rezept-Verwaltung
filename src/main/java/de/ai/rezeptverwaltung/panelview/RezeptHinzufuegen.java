@@ -28,6 +28,8 @@ import de.ai.rezeptverwaltung.services.MengeneinheitenService;
 import de.ai.rezeptverwaltung.services.RezeptService;
 import de.ai.rezeptverwaltung.services.SchlagwortService;
 import de.ai.rezeptverwaltung.services.Schlagwort_Rezept_Service;
+import de.ai.rezeptverwaltung.services.ZubereitungsschrittService;
+import de.ai.rezeptverwaltung.services.Zubereitungsschritt_RezeptService;
 import de.ai.rezeptverwaltung.services.ZutatService;
 import de.ai.rezeptverwaltung.services.Zutat_RezeptService;
 
@@ -40,6 +42,7 @@ public class RezeptHinzufuegen extends VerticalLayout {
 	
 	//Hilfskomponenten
 	LinkedList<LinkedList<TextField>> zutatenFelder;
+	LinkedList<TextArea> zuFelder;
 	
 	public RezeptHinzufuegen(Connection connection){
 		this.connection = connection;
@@ -163,45 +166,13 @@ public class RezeptHinzufuegen extends VerticalLayout {
 				for(Schlagwort swort2 : schlagworte)
 					svs.addOrUpdate(rezept, swort2);
 				
-//				Zutatenliste
+				//Zutatenliste
 				LinkedList<Zutat_Rezept> zutatRezeptListe = new LinkedList<Zutat_Rezept>();
 				
 				Zutat_Rezept zutatRezept;
 				Mengeneinheiten einheit;
 				Zutat zutat;
 				
-//				for(LinkedList<TextField> liste : zutatenFelder) {
-//					//Mengeneinheit mit SequenceID
-//					MengeneinheitenService ms = new MengeneinheitenService(connection);
-//					einheit = new Mengeneinheiten();
-//					einheit.setBezeichnung(liste.get(2).getValue());
-//					ms.addOrUpdate(einheit);
-//					einheit = ms.getByBezeichnung(einheit.getBezeichnung());
-//				}
-//				
-//				for(LinkedList<TextField> liste : zutatenFelder) {
-//					//Zutat mit ZutatId
-//					ZutatService zs = new ZutatService(connection);
-//					zutat = new Zutat();
-//					zutat.setBezeichnung(liste.get(0).getValue());
-//					zs.addOrUpdate(zutat);
-//					zutat = zs.getByBezeichnung(zutat.getBezeichnung());
-//				}
-//				
-//				for(LinkedList<TextField> liste : zutatenFelder) {
-//					//Zutatrezept mit ID
-//					
-//					zutatRezept = new Zutat_Rezept();
-//					zutatRezept.setAnzahl(Integer.parseInt(liste.get(1).getValue()));
-//					zutatRezept.setMengeneinheit(einheit);
-//					zutatRezept.setEinheitId(zutatRezept.getMengeneinheit().getEinheitId());
-//					zutatRezept.setZutat(zutat);
-//					zutatRezept.setZutatId(zutatRezept.getZutat().getZutatId());
-//					zutatRezept.setRezeptId(rezept.getRezeptId());
-//					
-//				}
-				
-				//Zutatenliste neu
 				int i = 0;
 				for(TextField bezeichnung : zutatenFelder.get(0)) {
 					
@@ -239,6 +210,34 @@ public class RezeptHinzufuegen extends VerticalLayout {
 				Zutat_RezeptService zrs = new Zutat_RezeptService(connection);
 				for(Zutat_Rezept rs : zutatRezeptListe)
 					zrs.addOrUpdate(rs);
+				
+				//Zubereitungsschritte
+				LinkedList<Zubereitungsschritt> schritte = new LinkedList<Zubereitungsschritt>();
+				
+				Zubereitungsschritt schritt;
+				
+				int schrittCounter = 1;
+				for(TextArea ta : zuFelder) {
+					
+					schritt = new Zubereitungsschritt();
+					schritt.setBeschreibung(ta.getValue());
+					schritt.setSchrittNummer(schrittCounter);
+					schritte.addLast(schritt);
+					schrittCounter++;
+					
+				}
+				
+				ZubereitungsschrittService zs = new ZubereitungsschrittService(connection);
+				Zubereitungsschritt_RezeptService zurs = new Zubereitungsschritt_RezeptService(connection);
+				for(Zubereitungsschritt schritt1 : schritte) {
+					zs.addOrUpdate(schritt1);
+					int nummer = schritt1.getSchrittNummer();
+					schritt1 = zs.getByBezeichnung(schritt1.getBeschreibung());
+					zurs.addOrUpdate(rezept, schritt1, nummer);
+				}
+				
+				
+				
 				
 			}
 			
@@ -294,7 +293,22 @@ public class RezeptHinzufuegen extends VerticalLayout {
 //		zutat.addClickListener(t -> layout3.addComponents(
 //				new HorizontalLayout(new TextField("Zutat:"), new TextField("Menge:"))));
 		
-		zubereitung.addClickListener(a -> layout4.addComponent(new TextArea("Zubereitungsschritt:"))); 
+//		zubereitung.addClickListener(a -> layout4.addComponent(new TextArea("Zubereitungsschritt:"))); 
+		
+		zuFelder = new LinkedList<TextArea>();
+		
+		zubereitung.addClickListener(new ClickListener() {
+			
+			@Override
+			public void buttonClick(ClickEvent event) {
+				
+				TextArea taZubereitungsschritt = new TextArea("Zubereitungsschritt: ");
+				layout4.addComponent(taZubereitungsschritt);
+				zuFelder.addLast(taZubereitungsschritt);
+				
+			}
+			
+		});
 			
 
 

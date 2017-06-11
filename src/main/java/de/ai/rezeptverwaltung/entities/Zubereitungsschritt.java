@@ -7,6 +7,8 @@ public class Zubereitungsschritt {
 	private int schrittId;
 	private String beschreibung;
 	
+	private int schrittNummer;
+	
 	private LinkedList<Werkzeug> werkzeuge;
 	private LinkedList<Bild> bilder;
 	
@@ -33,6 +35,12 @@ public class Zubereitungsschritt {
 	}
 	public void setBilder(LinkedList<Bild> bilder) {
 		this.bilder = bilder;
+	}
+	public int getSchrittNummer() {
+		return schrittNummer;
+	}
+	public void setSchrittNummer(int schrittNummer) {
+		this.schrittNummer = schrittNummer;
 	}
 	
 }
