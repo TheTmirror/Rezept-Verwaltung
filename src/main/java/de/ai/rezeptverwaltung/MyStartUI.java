@@ -27,7 +27,9 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
+import de.ai.rezeptverwaltung.panelview.RezeptHinzufuegen;
 import de.ai.rezeptverwaltung.panelview.RezeptSuche;
+import de.ai.rezeptverwaltung.panelview.SpeisekartePflegen;
 
 /**
  * This UI is the application entry point. A UI may either represent a browser window 
@@ -58,16 +60,21 @@ public class MyStartUI extends UI {
 			public void menuSelected(MenuItem selectedItem) {
 				if(selectedItem.getText().equals("Rezept Suchen")){
 					System.out.println("True");
-					view.setContent(new RezeptSuche(connection));
+//					view.setContent(new RezeptSuche(connection));
 				}
-				else if(selectedItem.getText().equals("Rezept hinzufügen"))
-					view.setContent(null);
+				else if(selectedItem.getText().equals("Rezept Hinzufuegen")){
+					view.setContent(new RezeptHinzufuegen());
+				}
+				else if(selectedItem.getText().equals("Speisekarte Pflegen")){
+					view.setContent(new SpeisekartePflegen());
+				}
 			}
 			
         };
         
         menu.addItem("Rezept Suchen", mycommand);
-        menu.addItem("Rezept hinzufügen", mycommand);
+        menu.addItem("Rezept Hinzufuegen", mycommand);
+        menu.addItem("Speisekarte Pflegen", mycommand);
         
         Button end = new Button("Alles beenden!");
         end.addClickListener(new ClickListener() {
