@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
 
+import de.ai.rezeptverwaltung.entities.Schlagwort;
 import de.ai.rezeptverwaltung.entities.Zubereitungsschritt;
 import de.ai.rezeptverwaltung.entities.Zubereitungsschritt;
 
@@ -16,6 +17,79 @@ public class ZubereitungsschrittService {
 	public ZubereitungsschrittService(Connection connection) {
 		
 		this.connection = connection;
+		
+	}
+	
+	public Zubereitungsschritt getByBezeichnung(String b) {
+		
+		PreparedStatement s = null;
+		Zubereitungsschritt ergebniss = null;
+		
+		String query = "SELECT * FROM zubereitungsschritt WHERE beschreibung = ?";
+		
+		try {
+			s = connection.prepareStatement(query);
+			s.setString(1, b);
+			ResultSet r = s.executeQuery();
+			
+			r.next();
+			ergebniss = new Zubereitungsschritt();
+			ergebniss.setSchrittId(Integer.parseInt(r.getString("schritt_id")));
+			ergebniss.setBeschreibung(r.getString("beschreibung"));
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				s.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		return ergebniss;
+		
+	}
+	
+	public void addOrUpdate(Zubereitungsschritt z) {
+		
+		PreparedStatement s = null;
+		
+		String query = "SELECT schritt_id FROM zubereitungsschritt WHERE beschreibung = ?";
+		
+		try {
+			s = connection.prepareStatement(query);
+			s.setString(1, z.getBeschreibung());
+			ResultSet r = s.executeQuery();
+			
+			int value = -1;
+			while(r.next())
+				value = Integer.parseInt(r.getString("schritt_id"));
+			
+			if(value != -1) {
+				z.setSchrittId(value);
+			}
+			else {
+				query = "INSERT INTO zubereitungsschritt VALUES (zubereitungsschritt_sequenz.nextval, ?)";
+				s.close();
+				s = connection.prepareStatement(query);
+				s.setString(1, z.getBeschreibung());
+				s.executeUpdate();
+				connection.commit();
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				s.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		
 	}
 	
@@ -33,7 +107,8 @@ public class ZubereitungsschrittService {
 			String queryString = "SELECT Zubereitungsschritt_Rezept.Schritt_id, Beschreibung " +
 								"FROM Zubereitungsschritt_Rezept " +
 								"JOIN Zubereitungsschritt ON(Zubereitungsschritt_Rezept.schritt_id = Zubereitungsschritt.schritt_id) " +
-								"WHERE Zubereitungsschritt_Rezept.rezept_id = ?";
+								"WHERE Zubereitungsschritt_Rezept.rezept_id = ? " +
+								"ORDER BY schrittnummer";
 			
 			searchQuery = connection.prepareStatement(queryString);
 			
