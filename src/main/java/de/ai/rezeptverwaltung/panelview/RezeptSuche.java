@@ -231,7 +231,7 @@ public class RezeptSuche extends HorizontalLayout{
 			layout.addComponent(new Label("Hier das Bild: " + rezept.getBild().getPfad()));
 		}
 		layout.addComponent(new Label("Kategorie: " + rezept.getKategorie().getBezeichnung()));
-		rezept.setSchlagworte(ss.getAllById(rezept.getRezeptId()));
+		rezept.setSchlagworte(ss.getAllByRezeptId(rezept.getRezeptId()));
 		String temp = "";
 		for(Schlagwort s : rezept.getSchlagworte())
 			temp += s.getBezeichnung() + " ";
