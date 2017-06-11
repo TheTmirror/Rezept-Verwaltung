@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 
 import de.ai.rezeptverwaltung.entities.Schlagwort;
+import de.ai.rezeptverwaltung.entities.Zutat;
 
 public class SchlagwortService {
 
@@ -18,7 +19,84 @@ public class SchlagwortService {
 		
 	}
 	
-	public LinkedList<Schlagwort> getAllById(int id) {
+	public Schlagwort getByBezeichnung(String b) {
+		
+		PreparedStatement s = null;
+		Schlagwort ergebniss = null;
+		
+		String query = "SELECT * FROM schlagwort WHERE bezeichnung = ?";
+		
+		try {
+			s = connection.prepareStatement(query);
+			s.setString(1, b);
+			ResultSet r = s.executeQuery();
+			
+			r.next();
+			ergebniss = new Schlagwort();
+			ergebniss.setSchlagwortId(Integer.parseInt(r.getString("schlagwort_id")));
+			ergebniss.setBezeichnung(r.getString("bezeichnung"));
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				s.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		return ergebniss;
+		
+	}
+	
+	public void addOrUpdate(LinkedList<Schlagwort> schlagworte) {
+		
+		PreparedStatement s = null;
+		
+		for(Schlagwort schlagwort : schlagworte) {
+		
+			String query = "SELECT schlagwort_id FROM schlagwort WHERE bezeichnung = ?";
+			
+			try {
+				s = connection.prepareStatement(query);
+				s.setString(1, schlagwort.getBezeichnung());
+				ResultSet r = s.executeQuery();
+				
+				int value = -1;
+				while(r.next())
+					value = Integer.parseInt(r.getString("schlagwort_id"));
+				
+				if(value != -1) {
+					schlagwort.setSchlagwortId(value);
+				}
+				else {
+					query = "INSERT INTO schlagwort VALUES (schlagwort_sequenz.nextval, ?)";
+					s.close();
+					s = connection.prepareStatement(query);
+					s.setString(1, schlagwort.getBezeichnung());
+					s.executeUpdate();
+					connection.commit();
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				try {
+					s.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		
+		}
+		
+	}
+	
+	public LinkedList<Schlagwort> getAllByRezeptId(int id) {
 		
 		LinkedList<Schlagwort> ergebnisse = new LinkedList<Schlagwort>();
 		

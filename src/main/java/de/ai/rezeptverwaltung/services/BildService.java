@@ -21,6 +21,79 @@ public class BildService {
 		
 	}
 	
+	public Bild getByPfad(String p) {
+		
+		PreparedStatement s = null;
+		Bild ergebniss = null;
+		
+		String query = "SELECT * FROM bild WHERE pfad = ?";
+		
+		try {
+			s = connection.prepareStatement(query);
+			s.setString(1, p);
+			ResultSet r = s.executeQuery();
+			
+			r.next();
+			ergebniss = new Bild();
+			ergebniss.setBildId(Integer.parseInt(r.getString("bild_id")));
+			ergebniss.setPfad(r.getString("pfad"));
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				s.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		return ergebniss;
+		
+	}
+	
+	public void addOrUpdate(Bild b) {
+		
+		PreparedStatement s = null;
+		
+		String query = "SELECT bild_id FROM bild WHERE pfad = ?";
+		
+		try {
+			s = connection.prepareStatement(query);
+			s.setString(1, b.getPfad());
+			ResultSet r = s.executeQuery();
+			
+			int value = -1;
+			while(r.next())
+				value = Integer.parseInt(r.getString("bild_id"));
+			
+			if(value != -1) {
+				b.setBildId(value);
+			}
+			else {
+				query = "INSERT INTO bild VALUES (bild_sequenz.nextval, ?)";
+				s.close();
+				s = connection.prepareStatement(query);
+				s.setString(1, b.getPfad());
+				s.executeUpdate();
+				connection.commit();
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				s.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+	}
+	
 	public LinkedList<Bild> getAllBySchrittId(int id) {
 		
 		LinkedList<Bild> ergebnisse = new LinkedList<Bild>();

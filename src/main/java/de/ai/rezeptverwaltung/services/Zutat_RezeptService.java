@@ -21,6 +21,53 @@ Connection connection;
 		
 	}
 	
+	public void addOrUpdate(Zutat_Rezept zR) {
+		
+		PreparedStatement s = null;
+		
+		String query = "SELECT rezept_id, zutat_id FROM zutat_rezept WHERE rezept_id = ? AND zutat_id = ?";
+		
+		try {
+			s = connection.prepareStatement(query);
+			s.setInt(1, zR.getRezeptId());
+			s.setInt(2, zR.getZutatId());
+			ResultSet r = s.executeQuery();
+			
+			int value1 = -1;
+			int value2 = -1;
+			while(r.next()) {
+				value1 = Integer.parseInt(r.getString("rezept_id"));
+				value2 = Integer.parseInt(r.getString("zutat_id"));
+			}
+				
+			if(value1 != -1 && value2 != -1) {
+//				b.setBildId(value);
+			}
+			else {
+				query = "INSERT INTO zutat_rezept(rezept_id, zutat_id, einheit_id, anzahl) VALUES (?, ?, ?, ?)";
+				s.close();
+				s = connection.prepareStatement(query);
+				s.setInt(1, zR.getRezeptId());
+				s.setInt(2, zR.getZutatId());
+				s.setInt(3, zR.getEinheitId());
+				s.setInt(4, zR.getAnzahl());
+				s.executeUpdate();
+				connection.commit();
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				s.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+	}
+	
 	public LinkedList<Zutat_Rezept> getAllById(int id) {
 		
 		LinkedList<Zutat_Rezept> ergebnisse = new LinkedList<Zutat_Rezept>();

@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.LinkedList;
 
+import com.vaadin.ui.Notification;
+
 import de.ai.rezeptverwaltung.entities.Freigabe;
 import de.ai.rezeptverwaltung.entities.Kategorie;
 import de.ai.rezeptverwaltung.entities.Rezept;
@@ -19,6 +21,92 @@ public class RezeptService {
 	public RezeptService(Connection connection) {
 		
 		this.connection = connection;
+		
+	}
+	
+	public Rezept getByBezeichnung(String b) {
+		
+		PreparedStatement s = null;
+		Rezept ergebniss = null;
+		
+		String query = "SELECT * FROM rezept WHERE bezeichnung = ?";
+		
+		try {
+			s = connection.prepareStatement(query);
+			s.setString(1, b);
+			ResultSet r = s.executeQuery();
+			
+			r.next();
+			ergebniss = new Rezept();
+			ergebniss.setRezeptId(Integer.parseInt(r.getString("rezept_id")));
+			ergebniss.setBezeichnung(r.getString("bezeichnung"));
+			ergebniss.setBildId(Integer.parseInt(r.getString("bild_id")));
+			ergebniss.setKategorieId(Integer.parseInt(r.getString("kategorie_id")));
+			if(r.getString("gesamtbewertung") != null)
+				ergebniss.setGesamtbewertung(Double.parseDouble(r.getString("gesamtbewertung")));
+			else
+				ergebniss.setGesamtbewertung(0.0);
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				s.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		return ergebniss;
+		
+	}
+	
+	/*
+	 * Achtung: Bei einem Update passiert nichts, bisher können nur neue
+	 * Rezepte hinzugefügt werden
+	 */
+	public void addOrUpdate(Rezept rezept) {
+		
+		PreparedStatement s = null;
+		
+		String query = "SELECT rezept_id FROM rezept WHERE bezeichnung = ?";
+		
+		try {
+			s = connection.prepareStatement(query);
+			s.setString(1, rezept.getBezeichnung());
+			ResultSet r = s.executeQuery();
+			
+			int value = -1;
+			while(r.next())
+				value = Integer.parseInt(r.getString("rezept_id"));
+			
+			if(value != -1) {
+				Notification.show("REZEPT WURDE NICHT HINZUGEFÜGT DA DER NAME BEREITS VERGEBEN IST (implement update)");
+				rezept.setRezeptId(value);
+			}
+			else {
+				query = "INSERT INTO rezept(rezept_id, bezeichnung, bild_id, kategorie_id) VALUES (rezept_sequenz.nextval, ?, ?, ?)";
+				s.close();
+				s = connection.prepareStatement(query);
+				s.setString(1, rezept.getBezeichnung());
+				s.setInt(2, rezept.getBild().getBildId());
+				s.setInt(3, rezept.getKategorie().getKategorieId());
+				s.executeUpdate();
+				connection.commit();
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				s.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		
 	}
 	
@@ -322,7 +410,10 @@ public class RezeptService {
 				if(r.getString("BILD_ID") != null)
 					rezept.setBildId(Integer.parseInt(r.getString("BILD_ID")));
 				rezept.setBezeichnung(r.getString("REZEPTBEZEICHNUNG"));
-				rezept.setGesamtbewertung(Double.parseDouble(r.getString("GESAMTBEWERTUNG")));
+				if(r.getString("GESAMTBEWERTUNG") != null)
+					rezept.setGesamtbewertung(Double.parseDouble(r.getString("GESAMTBEWERTUNG")));
+				else
+					rezept.setGesamtbewertung(0.0);
 				rezept.setKategorieId(Integer.parseInt(r.getString("KATEGORIE_ID")));
 				Kategorie k = new Kategorie();
 				k.setKategorieId(Integer.parseInt(r.getString("KATEGORIE_ID")));
