@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import de.ai.rezeptverwaltung.entities.Freigabe;
 import de.ai.rezeptverwaltung.entities.Kategorie;
 import de.ai.rezeptverwaltung.entities.Rezept;
+import de.ai.rezeptverwaltung.entities.RezeptSpeisekarte;
 
 public class RezeptService {
 
@@ -18,6 +19,46 @@ public class RezeptService {
 	public RezeptService(Connection connection) {
 		
 		this.connection = connection;
+		
+	}
+	
+	public LinkedList<RezeptSpeisekarte> getSpeisekarteView() {
+		
+		LinkedList<RezeptSpeisekarte> ergebnisse = new LinkedList<RezeptSpeisekarte>();
+		
+		PreparedStatement searchQuery = null;
+		
+		String queryString = "SELECT rezept_id, rezept_name, preis FROM speisekarten_ansicht";
+		
+		try {
+			searchQuery = connection.prepareStatement(queryString);
+			ResultSet r = searchQuery.executeQuery();
+			
+			RezeptSpeisekarte rs;
+			
+			while(r.next()){
+				
+				rs = new RezeptSpeisekarte();
+				rs.setRezeptId(Integer.parseInt(r.getString("rezept_id")));
+				rs.setBezeichnung(r.getString("rezept_name"));
+				rs.setPreis(Integer.parseInt(r.getString("preis")));
+				
+				ergebnisse.add(rs);
+				
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				searchQuery.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		return ergebnisse;
 		
 	}
 	

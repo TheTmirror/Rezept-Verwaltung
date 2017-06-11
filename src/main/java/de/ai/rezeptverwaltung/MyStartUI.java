@@ -28,6 +28,7 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
 import de.ai.rezeptverwaltung.panelview.RezeptSuche;
+import de.ai.rezeptverwaltung.panelview.SpeisekartePflegen;
 
 /**
  * This UI is the application entry point. A UI may either represent a browser window 
@@ -61,12 +62,15 @@ public class MyStartUI extends UI {
 				}
 				else if(selectedItem.getText().equals("Rezept hinzufügen"))
 					view.setContent(null);
+				else if(selectedItem.getText().equals("Speisekarte Pflegen"))
+					view.setContent(new SpeisekartePflegen(connection));
 			}
 			
         };
         
         menu.addItem("Rezept Suchen", mycommand);
         menu.addItem("Rezept hinzufügen", mycommand);
+        menu.addItem("Speisekarte Pflegen", mycommand);
         
         Button end = new Button("Alles beenden!");
         end.addClickListener(new ClickListener() {
