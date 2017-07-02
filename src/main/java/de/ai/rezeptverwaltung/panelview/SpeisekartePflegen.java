@@ -2,15 +2,18 @@ package de.ai.rezeptverwaltung.panelview;
 
 import java.sql.Connection;
 import java.util.Iterator;
+import java.util.LinkedList;
 
 import com.vaadin.event.selection.SelectionEvent;
 import com.vaadin.event.selection.SelectionListener;
+import com.vaadin.event.selection.SingleSelectionEvent;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
@@ -32,6 +35,7 @@ public class SpeisekartePflegen extends VerticalLayout{
 	//Service
 	RezeptService rs;
 	SpeisekarteViewService svs;
+	LinkedList<RezeptSpeisekarte> view;
 	
 	public SpeisekartePflegen (Connection connection) {
 		
@@ -51,6 +55,7 @@ public class SpeisekartePflegen extends VerticalLayout{
 	
 	private void initView() {
 		addComponent(new Label("Speisekarte pflegen Prototyp"));
+		view = rs.getSpeisekarteView();
 		
 		//Drag and Drop Grids
 		HorizontalLayout grids = new HorizontalLayout();
@@ -72,6 +77,9 @@ public class SpeisekartePflegen extends VerticalLayout{
 				for(Rezept s : right.getSelectedItems())
 					selectedItem1 = s;
 				
+				if(selectedItem1 == null)
+					return;
+				
 				//gecheatet wegen final -.-
 				final Rezept selectedItem = selectedItem1;
 				
@@ -92,6 +100,9 @@ public class SpeisekartePflegen extends VerticalLayout{
 					public void buttonClick(ClickEvent event) {
 						svs.add(1, selectedItem, Integer.parseInt(tfPreis.getValue()));
 						w.close();
+						view = rs.getSpeisekarteView();
+						left.setItems(view);
+						right.deselectAll();
 					}
 				});
 				
@@ -108,7 +119,12 @@ public class SpeisekartePflegen extends VerticalLayout{
 				for(RezeptSpeisekarte s : left.getSelectedItems())
 					selectedItem = s;
 				
+				if(selectedItem == null)
+					return;
+				
 				svs.remove(selectedItem.getRezeptId());
+				view = rs.getSpeisekarteView();
+				left.setItems(view);
 			}
 			
 		});
@@ -117,7 +133,7 @@ public class SpeisekartePflegen extends VerticalLayout{
 		gridsButtonLayout.addComponent(remove);
 		
 		left.setSelectionMode(SelectionMode.SINGLE);
-		left.setItems(rs.getSpeisekarteView());
+		left.setItems(view);
 		left.addColumn(RezeptSpeisekarte::getBezeichnung).setCaption("Name");
 		left.addColumn(RezeptSpeisekarte::getPreis).setCaption("Preis");
 		left.addSelectionListener(new SelectionListener<RezeptSpeisekarte>() {
@@ -142,7 +158,18 @@ public class SpeisekartePflegen extends VerticalLayout{
 			public void selectionChange(SelectionEvent<Rezept> event) {
 				if(event.getAllSelectedItems().size() != 0) {
 					left.deselectAll();
-					add.setEnabled(true);
+					boolean isOn = false;
+					for(RezeptSpeisekarte res : view)
+						
+						for(Rezept r : event.getAllSelectedItems())
+							if(res.getBezeichnung().equals(r.getBezeichnung())) {
+								isOn = true;
+								break;
+							}
+					if(isOn)
+						add.setEnabled(false);
+					else
+						add.setEnabled(true);
 					remove.setEnabled(false);
 				}
 			}

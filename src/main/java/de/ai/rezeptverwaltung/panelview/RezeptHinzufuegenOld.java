@@ -1,23 +1,21 @@
 package de.ai.rezeptverwaltung.panelview;
 
 import java.sql.Connection;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
-import com.vaadin.server.Sizeable.Unit;
 import com.vaadin.shared.ui.MarginInfo;
-import com.vaadin.ui.Accordion;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
+import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Notification.Type;
-import com.vaadin.ui.Panel;
 
 import de.ai.rezeptverwaltung.entities.Bild;
 import de.ai.rezeptverwaltung.entities.Kategorie;
@@ -37,14 +35,13 @@ import de.ai.rezeptverwaltung.services.SchlagwortService;
 import de.ai.rezeptverwaltung.services.Schlagwort_Rezept_Service;
 import de.ai.rezeptverwaltung.services.WerkzeugService;
 import de.ai.rezeptverwaltung.services.ZubereitungsschrittService;
-import de.ai.rezeptverwaltung.services.Zubereitungsschritt_BildService;
 import de.ai.rezeptverwaltung.services.Zubereitungsschritt_RezeptService;
 import de.ai.rezeptverwaltung.services.Zubereitungsschritt_WerkzeugService;
 import de.ai.rezeptverwaltung.services.ZutatService;
 import de.ai.rezeptverwaltung.services.Zutat_RezeptService;
 
-public class RezeptHinzufuegen extends VerticalLayout{
-
+public class RezeptHinzufuegenOld extends VerticalLayout {
+	
 	Connection connection;
 	
 	//Services
@@ -55,9 +52,8 @@ public class RezeptHinzufuegen extends VerticalLayout{
 	LinkedList<TextArea> zuFelder;
 	LinkedList<TextField> wFelder;
 	ThreeTypeArray tta;
-	Panel p;
 	
-	public RezeptHinzufuegen(Connection connection){
+	public RezeptHinzufuegenOld(Connection connection){
 		this.connection = connection;
 		
 		initServices();
@@ -69,72 +65,35 @@ public class RezeptHinzufuegen extends VerticalLayout{
 		rs = new RezeptService(connection);
 		
 	}
-	
-	@SuppressWarnings("serial")
-	private void init() {
+
+	private void init(){
 		
-		Label header = new Label("Rezept hinzufügen Prototyp");
+		//oberlfäche
+		Label sample = new Label("Rezept hinzufuegen");
+		VerticalLayout layout = new VerticalLayout();
+		HorizontalLayout layout1 = new HorizontalLayout();
+		VerticalLayout layout2 = new VerticalLayout();
+		VerticalLayout layout3 = new VerticalLayout();
+		VerticalLayout layout4 = new VerticalLayout();
+		layout.setSizeFull();
+		layout2.setSizeFull();
+		layout3.setSizeFull();
+		layout4.setSizeFull();
 		
-		VerticalLayout vl1 = new VerticalLayout();
-		vl1.setSizeUndefined();
-		vl1.setMargin(false);
-		HorizontalLayout hl1 = new HorizontalLayout();
-		HorizontalLayout hl2 = new HorizontalLayout();
-		hl2.setMargin(false);
-		VerticalLayout vl2 = new VerticalLayout();
-		VerticalLayout vl3 = new VerticalLayout();
-		vl3.setMargin(new MarginInfo(true, false, true, false));
-		Accordion acc = new Accordion();
 		
-		vl1.addComponent(hl1);
-		vl1.addComponent(hl2);
-		hl2.addComponent(vl2);
-		vl2.setWidth(33, Unit.PERCENTAGE);
-		hl2.addComponent(vl3);
-		vl3.setWidth(33, Unit.PERCENTAGE);
-		hl2.addComponent(acc);
 		
 		//textfelder für name, username, kategorie und schlagwort erstellen
 		TextField name = new TextField("Name des Rezepts: ");
 		name.setMaxLength(20);
-		TextField username = new TextField("Erstellt von: ");
+		//Wird nicht gebraucht
+		TextField username = new TextField("Erstellt von: (ACHTUNG NICHT IMPLEMENTIERT IM ERD!");
 		username.setMaxLength(20);
-		username.setWidth(100, Unit.PERCENTAGE);
 		TextField tfKategorie = new TextField("Kategorie zuweisen: ");
 		tfKategorie.setMaxLength(20);
 		TextArea taSchlagwort = new TextArea("Schlagworte ergänzen: ");
+//		taSchlagwort.setMaxLength(20);
 		
-		vl2.addComponent(name);
-		vl2.addComponent(username);
-		vl2.addComponent(tfKategorie);
-		vl2.addComponent(taSchlagwort);
-		
-		Button zutat = new Button("Zutat hinzufügen");
-		zutat.addClickListener(new ClickListener() {
-			
-			@Override
-			public void buttonClick(ClickEvent event) {
-				HorizontalLayout hl = new HorizontalLayout();
-				vl3.addComponent(hl);
-				
-				TextField zF = new TextField("Zutat: ");
-				TextField mF = new TextField("Menge: ");
-				TextField eF = new TextField("Einheit: ");
-				
-				zutatenFelder.get(0).add(zF);
-				zutatenFelder.get(1).add(mF);
-				zutatenFelder.get(2).add(eF);
-				
-				hl.addComponent(zF);
-				hl.addComponent(mF);
-				hl.addComponent(eF);
-			}
-		});
-		Button zubereitung = new Button("Zubereitungsschritt erstellen");
-		Button werkzeug = new Button("Werkzeug hinzufügen");
-		werkzeug.setEnabled(false);
-		Button bild = new Button("Bild zu akutellem Zubereitungsschritt hinzufügen");
-		bild.setEnabled(false);
+		//button für hinzufügen, zubereitung, zutat erstellen & bilder hinzufügen
 		Button hinzufuegen = new Button("Rezept hinzufügen");
 		hinzufuegen.addClickListener(new ClickListener() {
 			
@@ -307,40 +266,20 @@ public class RezeptHinzufuegen extends VerticalLayout{
 				int zIndex = 0;
 				int wIndex = 0;
 				for(TextField tf : tta.getwFelder()) {
+					werkzeug = new Werkzeug();
+					werkzeug.setBezeichnung(tf.getValue());
+					ws.addOrUpdate(werkzeug);
+					werkzeug = ws.getByBezeichnung(werkzeug.getBezeichnung());
 					if(tta.getZuFelder().get(wIndex) != null)
 						zIndex = wIndex;
-					if(tf != null) {
-						werkzeug = new Werkzeug();
-						werkzeug.setBezeichnung(tf.getValue());
-						ws.addOrUpdate(werkzeug);
-						werkzeug = ws.getByBezeichnung(werkzeug.getBezeichnung());
-						//Lässt sucg dieser extra Zugriff vllt vermeiden?
-						Zubereitungsschritt z = zs.getByBezeichnung(tta.getZuFelder().get(zIndex).getValue());
-						Zubereitungsschritt_WerkzeugService zws = new Zubereitungsschritt_WerkzeugService(connection);
-						zws.addOrUpdate(z, werkzeug);
-					}
+					//Lässt sucg dieser extra Zugriff vllt vermeiden?
+					Zubereitungsschritt z = zs.getByBezeichnung(tta.getZuFelder().get(zIndex).getValue());
+					Zubereitungsschritt_WerkzeugService zws = new Zubereitungsschritt_WerkzeugService(connection);
+					zws.addOrUpdate(z, werkzeug);
 					wIndex++;
 				}
 				
 				//Zubereitungsschritt - Bild füllen
-				zIndex = 0;
-				int bIndex = 0;
-				for(TextField tf : tta.getbFelder()) {
-					if(tta.getZuFelder().get(bIndex) != null)
-						zIndex = bIndex;
-					if(tf != null) {
-						bild = new Bild();
-						bild.setPfad(tf.getValue());
-						bs.addOrUpdate(bild);
-						bild = bs.getByPfad(bild.getPfad());
-						//Lässt sucg dieser extra Zugriff vllt vermeiden?
-						Zubereitungsschritt z = zs.getByBezeichnung(tta.getZuFelder().get(zIndex).getValue());
-						Zubereitungsschritt_BildService zbs = new Zubereitungsschritt_BildService(connection);
-						zbs.addOrUpdate(z, bild);
-					}
-					bIndex++;
-				}
-				
 				
 				
 				
@@ -349,12 +288,28 @@ public class RezeptHinzufuegen extends VerticalLayout{
 			}
 			
 		});
+		Button zubereitung = new Button("Zubereitungsschritt erstellen");
+		Button zutat = new Button("Zutat hinzufügen");
+		VerticalLayout layout5 = new VerticalLayout();
+		layout5.setSizeFull();
+		Button werkzeug = new Button("Werkzeug hinzufügen");
+		werkzeug.setEnabled(false);
+		Button bild = new Button("Bild zu akutellem Zubereitungsschritt hinzufügen");
+		bild.setEnabled(false);
+
+		addComponent(sample);
+		addComponent(layout);
+		layout.addComponent(layout1);
+		layout1.addComponent(layout2);
+		layout1.addComponent(layout3);
+		layout1.addComponent(layout4);
+		layout1.addComponent(layout5);
 		
-		hl1.addComponent(zutat);
-		hl1.addComponent(zubereitung);
-		hl1.addComponent(werkzeug);
-		hl1.addComponent(bild);
-		hl1.addComponent(hinzufuegen);
+		//text felder visualisieren
+		layout2.addComponentAsFirst(new VerticalLayout(name, username, tfKategorie, taSchlagwort));
+		
+		//buttons visualisieren
+		layout.addComponentAsFirst(new HorizontalLayout(zutat, zubereitung, werkzeug, bild, hinzufuegen));
 		
 		//bei jedem click wird ein feld für zutat und/oder zubereitung erstellt
 		zutatenFelder = new LinkedList<LinkedList<TextField>>();
@@ -365,7 +320,31 @@ public class RezeptHinzufuegen extends VerticalLayout{
 		zutatenFelder.addLast(mFelder);
 		zutatenFelder.addLast(eFelder);
 		
+		zutat.addClickListener(new ClickListener() {
+			
+			@Override
+			public void buttonClick(ClickEvent event) {
+				HorizontalLayout hl = new HorizontalLayout();
+				layout3.addComponent(hl);
+				
+				TextField zF = new TextField("Zutat: ");
+				TextField mF = new TextField("Menge: ");
+				TextField eF = new TextField("Einheit: ");
+				
+				zutatenFelder.get(0).add(zF);
+				zutatenFelder.get(1).add(mF);
+				zutatenFelder.get(2).add(eF);
+				
+				hl.addComponent(zF);
+				hl.addComponent(mF);
+				hl.addComponent(eF);
+			}
+		});
+		
+		//New
 		tta = new ThreeTypeArray();
+		
+		LinkedList<HorizontalLayout> layoutList = new LinkedList<HorizontalLayout>();
 		
 		zubereitung.addClickListener(new ClickListener() {
 
@@ -373,35 +352,34 @@ public class RezeptHinzufuegen extends VerticalLayout{
 			public void buttonClick(ClickEvent event) {
 				werkzeug.setEnabled(true);
 				bild.setEnabled(true);
+				HorizontalLayout hl = new HorizontalLayout();
+				VerticalLayout vl1 = new VerticalLayout();
+				vl1.setSizeFull();
+				VerticalLayout vl2 = new VerticalLayout();
+				vl2.setSizeFull();
+				vl1.setMargin(new MarginInfo(false, true, false, true));
+				vl2.setMargin(new MarginInfo(false, true, false, true));
 				TextArea taZubereitungsschritt = new TextArea("Zubereitungsschritt: ");
-				p = new Panel();
-				HorizontalLayout content = new HorizontalLayout();
-				content.setMargin(true);
-				p.setContent(content);
-				VerticalLayout vlText = new VerticalLayout();
-				vlText.setMargin(false);
-				VerticalLayout vlBild = new VerticalLayout();
-				vlBild.setMargin(false);
-				VerticalLayout vlWerkzeug = new VerticalLayout();
-				vlWerkzeug.setMargin(false);
-				vlText.addComponent(taZubereitungsschritt);
-				content.addComponent(vlText);
-				content.addComponent(vlWerkzeug);
-				content.addComponent(vlBild);
-				acc.addTab(p, "Zubereitungsschritt");
-				acc.setSelectedTab(p);
+				hl.addComponent(taZubereitungsschritt);
+				hl.addComponent(vl1);
+				hl.addComponent(vl2);
+				layout4.addComponent(hl);
 				tta.addZuFeld(taZubereitungsschritt);
+				layoutList.addLast(hl);
 			}
 			
 		});
 		
+		//New
 		werkzeug.addClickListener(new ClickListener() {
 			
 			@Override
 			public void buttonClick(ClickEvent event) {
+				HorizontalLayout hl = layoutList.getLast();
+				VerticalLayout vl = (VerticalLayout) hl.getComponent(1);
+				vl.setSizeFull();
 				TextField tfWerkzeug = new TextField("Werkzeug: ");
-				VerticalLayout vlWerkzeug = (VerticalLayout) ((HorizontalLayout) p.getContent()).getComponent(1);
-				vlWerkzeug.addComponent(tfWerkzeug);
+				vl.addComponent(tfWerkzeug);
 				tta.addWFeld(tfWerkzeug);
 			}
 		});
@@ -410,18 +388,15 @@ public class RezeptHinzufuegen extends VerticalLayout{
 			
 			@Override
 			public void buttonClick(ClickEvent event) {
+				HorizontalLayout hl = layoutList.getLast();
+				VerticalLayout vl = (VerticalLayout) hl.getComponent(2);
+				vl.setSizeFull();
 				TextField tfBild = new TextField("Bild(Pfad): ");
-				VerticalLayout vlBild = (VerticalLayout) ((HorizontalLayout) p.getContent()).getComponent(2);
-				vlBild.addComponent(tfBild);
-				tta.addBFeld(tfBild);
+				vl.addComponent(tfBild);
 			}
 		});
-		
-		
-		
-		addComponent(header);
-		addComponent(vl1);
-		
+
 	}
 	
+
 }

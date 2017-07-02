@@ -5,6 +5,8 @@ import java.sql.ResultSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.vaadin.data.HasValue.ValueChangeEvent;
+import com.vaadin.data.HasValue.ValueChangeListener;
 import com.vaadin.event.selection.SelectionEvent;
 import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.shared.ui.MarginInfo;
@@ -16,6 +18,7 @@ import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.Grid.ItemClick;
 import com.vaadin.ui.Grid.SelectionMode;
+import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.ListSelect;
@@ -37,6 +40,7 @@ import de.ai.rezeptverwaltung.entities.Freigabe;
 import de.ai.rezeptverwaltung.entities.Kommentar;
 import de.ai.rezeptverwaltung.entities.Rezept;
 import de.ai.rezeptverwaltung.entities.Schlagwort;
+import de.ai.rezeptverwaltung.entities.Werkzeug;
 import de.ai.rezeptverwaltung.entities.Zubereitungsschritt;
 import de.ai.rezeptverwaltung.services.BewertungService;
 import de.ai.rezeptverwaltung.services.BildService;
@@ -45,6 +49,7 @@ import de.ai.rezeptverwaltung.services.KommentarService;
 import de.ai.rezeptverwaltung.services.RezeptService;
 import de.ai.rezeptverwaltung.services.SchlagwortService;
 import de.ai.rezeptverwaltung.services.SpeisekarteViewService;
+import de.ai.rezeptverwaltung.services.WerkzeugService;
 import de.ai.rezeptverwaltung.services.ZubereitungsschrittService;
 
 public class RezeptSuche extends HorizontalLayout{
@@ -243,7 +248,8 @@ public class RezeptSuche extends HorizontalLayout{
 		for(Schlagwort s : rezept.getSchlagworte())
 			temp += s.getBezeichnung() + " ";
 		layout.addComponent(new Label("Schlagworte: " + temp));
-		layout.addComponent(new Label("Bewertung: " + rezept.getGesamtbewertung()));
+		Label bewertung = new Label("Bewertung: " + rezept.getGesamtbewertung());
+		layout.addComponent(bewertung);
 		if(rezept.getFreigabe() != null)
 			if(rezept.getFreigabe().getStatus() == 0)
 				layout.addComponent(new Label("Ablehngrund: " + rezept.getFreigabe().getBegründung()));
@@ -288,6 +294,9 @@ public class RezeptSuche extends HorizontalLayout{
 					
 					fs.updateFreigabe(rezept);
 				}
+				
+				freigeben.setEnabled(false);
+				entziehen.setEnabled(true);
 			}
 			
 		});
@@ -320,6 +329,9 @@ public class RezeptSuche extends HorizontalLayout{
 							fs.createFreigabe(rezept);
 							
 							w.close();
+							
+							entziehen.setEnabled(false);
+							freigeben.setEnabled(true);
 						}
 						
 					});
@@ -350,6 +362,9 @@ public class RezeptSuche extends HorizontalLayout{
 							fs.updateFreigabe(rezept);
 							
 							w.close();
+							
+							entziehen.setEnabled(false);
+							freigeben.setEnabled(true);
 						}
 						
 					});
@@ -377,19 +392,25 @@ public class RezeptSuche extends HorizontalLayout{
 		
 		//Kommentare
 		Panel kommentare = new Panel();
-		VerticalLayout kommentarLayout = new VerticalLayout();
-		kommentarLayout.setHeight(150.0f, Unit.PIXELS);
+		
+		Grid<Kommentar> kommentar = new Grid<Kommentar>();
+		
+//		VerticalLayout kommentarLayout = new VerticalLayout();
+//		kommentarLayout.setHeight(150.0f, Unit.PIXELS);
 		
 		KommentarService ks = new KommentarService(connection);
 		
 		rezept.setKommentare(ks.getAllById(rezept.getRezeptId()));
 		
-		// TODO Kommentarpanel schön machen!
-		for(Kommentar k : rezept.getKommentare()) {
-			kommentarLayout.addComponent(new Label(k.getKommentartext()));
-		}
+//		// TODO Kommentarpanel schön machen!
+//		for(Kommentar k : rezept.getKommentare()) {
+//			kommentarLayout.addComponent(new Label(k.getKommentartext()));
+//		}
 		
-		kommentare.setContent(kommentarLayout);
+		kommentar.setItems(rezept.getKommentare());
+		kommentar.addColumn(Kommentar::getKommentartext);
+		kommentar.setHeightByRows(5);
+		kommentare.setContent(kommentar);
 		
 		layout.addComponent(kommentare);
 		
@@ -407,6 +428,8 @@ public class RezeptSuche extends HorizontalLayout{
 				
 				Label l = new Label("Bitte Kommentar eingeben!");
 				TextArea ta = new TextArea();
+				Label la = new Label("Bitte Autor eingeben!");
+				TextField ta2 = new TextField();
 				Button ok = new Button("Kommentar speichern");
 				
 				ok.addClickListener(new ClickListener() {
@@ -418,12 +441,15 @@ public class RezeptSuche extends HorizontalLayout{
 						Kommentar k = new Kommentar();
 						k.setRezeptId(rezept.getRezeptId());
 						k.setKommentartext(ta.getValue());
-						k.setAutor("MusterAutor");
+						if(!ta2.isEmpty())
+							k.setAutor(ta2.getValue());
 						
 						ks.save(k);
 						
-						//Damit man mit dem selben Objekt weiter arbeiten kann
-						rezept.getKommentare().add(k);
+						rezept.setKommentare(ks.getAllById(rezept.getRezeptId()));
+//						//Damit man mit dem selben Objekt weiter arbeiten kann
+//						rezept.getKommentare().add(k);
+						kommentar.setItems(rezept.getKommentare());
 						
 						w.close();
 					}
@@ -432,7 +458,25 @@ public class RezeptSuche extends HorizontalLayout{
 				
 				vl.addComponent(l);
 				vl.addComponent(ta);
+				vl.addComponent(la);
+				vl.addComponent(ta2);
 				vl.addComponent(ok);
+				
+				ok.setEnabled(false);
+				
+				ta.addValueChangeListener(new ValueChangeListener<String>() {
+					
+					@Override
+					public void valueChange(ValueChangeEvent<String> event) {
+						String testString = event.getValue();
+						testString = testString.replaceAll("\\s","");
+						if(testString.equals(""))
+							ok.setEnabled(false);
+						else
+							ok.setEnabled(true);
+					}
+					
+				});
 			}
 			
 		});
@@ -459,6 +503,8 @@ public class RezeptSuche extends HorizontalLayout{
 				BewertungService bs = new BewertungService(connection);
 				bs.save(b);
 				
+				rezept.setGesamtbewertung(rs.getById(rezept.getRezeptId()).getGesamtbewertung());
+				bewertung.setValue("Bewertung: " + rezept.getGesamtbewertung());
 			}
 			
 		});
@@ -477,11 +523,74 @@ public class RezeptSuche extends HorizontalLayout{
 		if(rezept.getZubereitungsschritte().isEmpty())
 			schritte.addTab(new VerticalLayout(new Label("Es sind keine Schritte vorhanden")));
 		
+		//New
 		int i = 1;
+		GridLayout schritt = null;
+		
 		for(Zubereitungsschritt z : rezept.getZubereitungsschritte()) {
-			schritte.addTab(new VerticalLayout(new Label(z.getBeschreibung())), "Schritt " + i);
+			schritt = new GridLayout(1, 2);
+			schritt.setSizeFull();
+			VerticalLayout vlText = new VerticalLayout();
+			VerticalLayout vlBild = new VerticalLayout();
+			VerticalLayout vlWerkzeug = new VerticalLayout();
+			vlText.setSizeFull();
+			vlBild.setSizeFull();
+			vlWerkzeug.setSizeFull();
+			
+			vlText.addComponent(new Label(z.getBeschreibung()));
+			
+			for(Bild b : z.getBilder())
+				vlBild.addComponent(new Label(b.getPfad()));
+			
+			WerkzeugService ws = new WerkzeugService(connection);
+			z.setWerkzeuge(ws.getAllById(z.getSchrittId()));
+			Accordion werkzeuge = new Accordion();
+			int j = 1;
+			for(Werkzeug w : z.getWerkzeuge()) {
+				werkzeuge.addTab(new VerticalLayout(new Label(w.getBezeichnung())), "Werkzeug " + j);
+				j++;
+			}
+			vlWerkzeug.addComponent(werkzeuge);
+			
+			schritt.addComponent(vlText, 0, 0);
+			GridLayout underSchritt = new GridLayout(2, 1);
+			if(!z.getBilder().isEmpty())
+				underSchritt.addComponent(vlBild, 0, 0);
+			if(!z.getWerkzeuge().isEmpty())
+				underSchritt.addComponent(vlWerkzeug, 1, 0);
+			schritt.addComponent(underSchritt, 0, 1);
+			
+			schritte.addTab(schritt, "Schritt " + i);
 			i++;
 		}
+		
+		
+		//Old
+//		int i = 1;
+//		VerticalLayout schritt = null;
+//		Accordion werkzeuge = null;
+//		WerkzeugService ws = new WerkzeugService(connection);
+//		for(Zubereitungsschritt z : rezept.getZubereitungsschritte()) {
+//			z.setBilder(bs.getAllBySchrittId(z.getSchrittId()));
+//			schritt = new VerticalLayout();
+//			Label l = new Label(z.getBeschreibung());
+//			schritt.addComponent(l);
+//			for(Bild b : z.getBilder())
+//				schritt.addComponent(new Label(b.getPfad()));
+//			
+//			werkzeuge = new Accordion();
+//			z.setWerkzeuge(ws.getAllById(z.getSchrittId()));
+//			int j = 1;
+//			for(Werkzeug w : z.getWerkzeuge()) {
+//				werkzeuge.addTab(new Label(w.getBezeichnung()), "Werkzeug " + j);
+//				j++;
+//			}
+//			if(!z.getWerkzeuge().isEmpty())
+//				schritt.addComponent(werkzeuge);
+//			
+//			schritte.addTab(schritt, "Schritt " + i);
+//			i++;
+//		}
 		
 		outerLayout.addComponent(layout);
 		outerLayout.addComponent(af);

@@ -79,8 +79,8 @@ public class Zubereitungsschritt_WerkzeugService {
 				query = "INSERT INTO zubereitungsschritt_werkzeug VALUES (?, ?)";
 				s.close();
 				s = connection.prepareStatement(query);
-				s.setInt(1, w.getWerkzeugId());
-				s.setInt(2, z.getSchrittId());
+				s.setInt(2, w.getWerkzeugId());
+				s.setInt(1, z.getSchrittId());
 				s.executeUpdate();
 				connection.commit();
 			}

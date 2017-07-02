@@ -27,6 +27,7 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
+import de.ai.rezeptverwaltung.panelview.RezeptHinzufuegenOld;
 import de.ai.rezeptverwaltung.panelview.RezeptHinzufuegen;
 import de.ai.rezeptverwaltung.panelview.RezeptSuche;
 import de.ai.rezeptverwaltung.panelview.SpeisekartePflegen;
@@ -99,8 +100,8 @@ public class MyStartUI extends UI {
         	
         });
         
-        layout.addComponent(end);
-        layout.addComponent(rollback);
+//        layout.addComponent(end);
+//        layout.addComponent(rollback);
         layout.addComponent(menu);
         layout.addComponent(view);
         

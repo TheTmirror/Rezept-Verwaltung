@@ -24,6 +24,43 @@ public class RezeptService {
 		
 	}
 	
+	public Rezept getById(int id) {
+		
+		PreparedStatement s = null;
+		Rezept ergebnis = null;
+		
+		String query = "SELECT * FROM rezept WHERE rezept_id = ?";
+		
+		try {
+			s = connection.prepareStatement(query);
+			s.setInt(1, id);
+			ResultSet r = s.executeQuery();
+			r.next();
+			ergebnis = new Rezept();
+			ergebnis.setRezeptId(Integer.parseInt(r.getString("rezept_id")));
+			ergebnis.setBezeichnung(r.getString("bezeichnung"));
+			ergebnis.setBildId(Integer.parseInt(r.getString("bild_id")));
+			ergebnis.setKategorieId(Integer.parseInt(r.getString("kategorie_id")));
+			if(r.getString("gesamtbewertung") != null)
+				ergebnis.setGesamtbewertung(Double.parseDouble(r.getString("gesamtbewertung")));
+			else
+				ergebnis.setGesamtbewertung(0.0);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				s.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		return ergebnis;
+		
+	}
+	
 	public Rezept getByBezeichnung(String b) {
 		
 		PreparedStatement s = null;
