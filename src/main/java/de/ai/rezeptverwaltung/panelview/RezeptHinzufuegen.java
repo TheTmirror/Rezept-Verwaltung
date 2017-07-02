@@ -95,19 +95,21 @@ public class RezeptHinzufuegen extends VerticalLayout{
 		hl2.addComponent(acc);
 		
 		//textfelder für name, username, kategorie und schlagwort erstellen
-		TextField name = new TextField("Name des Rezepts: ");
+		TextField name = new TextField("Name des Rezepts:(*) ");
 		name.setMaxLength(20);
 		TextField username = new TextField("Erstellt von: ");
 		username.setMaxLength(20);
 		username.setWidth(100, Unit.PERCENTAGE);
-		TextField tfKategorie = new TextField("Kategorie zuweisen: ");
+		TextField tfKategorie = new TextField("Kategorie zuweisen:(*) ");
 		tfKategorie.setMaxLength(20);
 		TextArea taSchlagwort = new TextArea("Schlagworte ergänzen: ");
+		Label pflicht = new Label("(*) Pflichtfelder");
 		
 		vl2.addComponent(name);
 		vl2.addComponent(username);
 		vl2.addComponent(tfKategorie);
 		vl2.addComponent(taSchlagwort);
+		vl2.addComponent(pflicht);
 		
 		Button zutat = new Button("Zutat hinzufügen");
 		zutat.addClickListener(new ClickListener() {
