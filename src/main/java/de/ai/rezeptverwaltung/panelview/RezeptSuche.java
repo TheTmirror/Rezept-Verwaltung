@@ -42,6 +42,7 @@ import de.ai.rezeptverwaltung.entities.Rezept;
 import de.ai.rezeptverwaltung.entities.Schlagwort;
 import de.ai.rezeptverwaltung.entities.Werkzeug;
 import de.ai.rezeptverwaltung.entities.Zubereitungsschritt;
+import de.ai.rezeptverwaltung.entities.Zutat_Rezept;
 import de.ai.rezeptverwaltung.services.BewertungService;
 import de.ai.rezeptverwaltung.services.BildService;
 import de.ai.rezeptverwaltung.services.FreigabeService;
@@ -51,6 +52,7 @@ import de.ai.rezeptverwaltung.services.SchlagwortService;
 import de.ai.rezeptverwaltung.services.SpeisekarteViewService;
 import de.ai.rezeptverwaltung.services.WerkzeugService;
 import de.ai.rezeptverwaltung.services.ZubereitungsschrittService;
+import de.ai.rezeptverwaltung.services.Zutat_RezeptService;
 
 public class RezeptSuche extends HorizontalLayout{
 	
@@ -512,11 +514,24 @@ public class RezeptSuche extends HorizontalLayout{
 		layout.addComponent(s);
 		layout.addComponent(sliderOk);
 		
-		//Zubereitungsschritte
 		FormLayout af = new FormLayout();
 		af.setMargin(true);
+		
+		//Zutaten
+		Grid<Zutat_Rezept> zutaten = new Grid<Zutat_Rezept>();
+		Zutat_RezeptService zrs = new Zutat_RezeptService(connection);
+		rezept.setZutat_rezept(zrs.getAllById(rezept.getRezeptId()));
+		zutaten.setItems(rezept.getZutat_rezept());
+		zutaten.addColumn(Zutat_Rezept::getZutat);
+		zutaten.addColumn(Zutat_Rezept::getAnzahl);
+		zutaten.addColumn(Zutat_Rezept::getMengeneinheit);
+		zutaten.setHeightByRows(5);
+		
+		//Zubereitungsschritte
 		Accordion schritte = new Accordion();
 		af.addComponent(schritte);
+		
+		af.addComponent(zutaten);
 		
 		rezept.setZubereitungsschritte(zs.getAllById(rezept.getRezeptId()));
 		

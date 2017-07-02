@@ -18,4 +18,9 @@ public class Zutat {
 		this.bezeichnung = bezeichnung;
 	}
 	
+	@Override
+	public String toString() {
+		return bezeichnung;
+	}
+	
 }
