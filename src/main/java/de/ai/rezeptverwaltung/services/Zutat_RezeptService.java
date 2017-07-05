@@ -81,7 +81,7 @@ Connection connection;
 			
 			String queryString = "SELECT zutat.zutat_id AS id, zutat.bezeichnung AS zutat, anzahl, mengeneinheiten.einheit_ID AS eid, mengeneinheiten.bezeichnung AS einheit " +
 								"FROM Zutat_Rezept " +
-								"JOIN Zutat ON(Zutat.zutat_id=Zutat_rezept.rezept_id) " +
+								"JOIN Zutat ON(Zutat.zutat_id=Zutat_rezept.zutat_id) " +
 								"JOIN Mengeneinheiten ON(Mengeneinheiten.einheit_id=Zutat_rezept.einheit_id) " +
 								"WHERE Rezept_id=?";
 			
